@@ -1,0 +1,22 @@
+# Build .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.log
+
+# Images de produits envoyées depuis l'application (données locales)
+PROJET/wwwroot/images/produits/*
+!PROJET/wwwroot/images/produits/.gitkeep
+
+# VS Code (on garde la config partagée)
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/extensions.json
+
+# Système
+.DS_Store
+Thumbs.db
+desktop.ini

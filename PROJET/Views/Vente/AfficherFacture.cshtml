@@ -1,0 +1,125 @@
+@model PROJET.Models.Facture
+
+@{
+    ViewData["Title"] = $"Facture {Model.NumeroFacture}";
+    Layout = "_Layout";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+
+        <!-- Barre d'actions (hors impression) -->
+        <div class="d-flex gap-2 mb-3 no-print">
+            <a asp-action="Index" class="btn btn-secondary">Retour</a>
+            <button onclick="window.print()" class="btn btn-primary">🖨️ Imprimer</button>
+        </div>
+
+        <!-- ══════════════ ZONE FACTURE ══════════════ -->
+        <div class="card p-4" id="factureZone">
+
+            <!-- En-tête : société + numéro facture -->
+            <div class="row mb-4">
+                <div class="col-6">
+                    <div style="font-size:22px;font-weight:700;color:var(--blue-main,#1a6fc4);">TechShop</div>
+                    <div class="text-muted small">Matériel informatique</div>
+                    <div class="text-muted small">Tunis, Tunisie</div>
+                </div>
+                <div class="col-6 text-end">
+                    <div style="font-size:20px;font-weight:700;">FACTURE</div>
+                    <div class="text-muted">N° <strong>@Model.NumeroFacture</strong></div>
+                    <div class="text-muted small">Date : @Model.DateFacture.ToString("dd/MM/yyyy")</div>
+                    <div class="text-muted small">Vente : <code>#@Model.VenteID</code></div>
+                </div>
+            </div>
+
+            <hr />
+
+            <!-- Informations client -->
+            <div class="mb-4">
+                <h6 class="text-muted text-uppercase" style="font-size:11px;letter-spacing:1px;">Client</h6>
+                <div><strong>@Model.NomClient</strong>
+                    <span class="badge bg-secondary ms-1">@(Model.TypeClient == PROJET.Models.TypeClient.Physique ? "Personne physique" : "Personne morale")</span>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.MatriculeFiscal))
+                {
+                    <div class="text-muted small">MF : @Model.MatriculeFiscal</div>
+                }
+                @if (!string.IsNullOrEmpty(Model.Adresse))
+                {
+                    <div class="text-muted small">@Model.Adresse</div>
+                }
+                @if (!string.IsNullOrEmpty(Model.Telephone))
+                {
+                    <div class="text-muted small">Tél : @Model.Telephone</div>
+                }
+                @if (!string.IsNullOrEmpty(Model.Email))
+                {
+                    <div class="text-muted small">Email : @Model.Email</div>
+                }
+            </div>
+
+            <!-- Tableau des lignes -->
+            <div class="table-responsive">
+            <table class="table table-bordered align-middle mb-0">
+                <thead style="background:#1a6fc4;color:#fff;">
+                    <tr>
+                        <th>#</th>
+                        <th>Référence</th>
+                        <th>Désignation</th>
+                        <th class="text-center">Qté</th>
+                        <th class="text-end">Prix unit. HT</th>
+                        <th class="text-end">Total HT</th>
+                    </tr>
+                </thead>
+                </thead>
+                <tbody>
+                    @{ int i = 1; }
+                    @foreach (var l in Model.Vente!.Lignes)
+                    {
+                        <tr>
+                            <td>@(i++)</td>
+                            <td><code>@l.Produit?.Reference</code></td>
+                            <td>@l.Produit?.Nom</td>
+                            <td class="text-center">@l.Quantite</td>
+                            <td class="text-end">@l.PrixUnitaire.ToString("N3") DT</td>
+                            <td class="text-end fw-bold">@l.SousTotal.ToString("N3") DT</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr class="table-light">
+                        <td colspan="5" class="text-end fw-bold">Montant HT</td>
+                        <td class="text-end fw-bold">@Model.MontantHT.ToString("N3") DT</td>
+                    </tr>
+                    <tr class="table-light">
+                        <td colspan="5" class="text-end text-muted">TVA 19 %</td>
+                        <td class="text-end">@Model.MontantTVA.ToString("N3") DT</td>
+                    </tr>
+                    <tr class="table-light">
+                        <td colspan="5" class="text-end text-muted">Timbre fiscal</td>
+                        <td class="text-end">@Model.Timbre.ToString("N3") DT</td>
+                    </tr>
+                    <tr style="background:#d1fae5;font-weight:700;">
+                        <td colspan="5" class="text-end" style="font-size:15px;">TOTAL TTC</td>
+                        <td class="text-end text-success" style="font-size:15px;">@Model.MontantTTC.ToString("N3") DT</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+            <div class="mt-4 text-center text-muted small">
+                Merci pour votre confiance. — TechShop
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @@media print {
+        .no-print { display: none !important; }
+        .sidebar, .topbar, .page-footer { display: none !important; }
+        .main-wrapper { margin: 0 !important; }
+        .page-content { padding: 0 !important; }
+        #factureZone { box-shadow: none !important; border: none !important; }
+    }
+</style>

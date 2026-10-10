@@ -1,0 +1,18 @@
+# SQL Server 2022 pour lancer TechShop sans SQL Server LocalDB (ou hors Windows).
+#   docker compose up -d                       -> démarre SQL Server
+#   cd PROJET && dotnet run --launch-profile docker
+# Mot de passe réservé au développement local uniquement.
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: techshop-sqlserver
+    ports:
+      - "1433:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "TechShop_Dev2026!"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+
+volumes:
+  sqlserver-data:

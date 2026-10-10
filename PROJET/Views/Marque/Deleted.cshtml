@@ -1,0 +1,77 @@
+﻿@model List<PROJET.Models.Marque>
+
+@{
+    ViewData["Title"] = "Marques supprimées";
+}
+
+<h2 class="mb-4">Marques supprimées</h2>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <input type="text"
+               id="searchInput"
+               value="@ViewBag.Search"
+               class="form-control"
+               placeholder="Rechercher dans les marques supprimées..." />
+    </div>
+
+    <div class="col-md-6 text-end">
+        <a asp-action="Index" class="btn btn-secondary">
+            Retour
+        </a>
+    </div>
+</div>
+
+<table class="table table-bordered table-striped table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Nom</th>
+            <th width="160">Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @if (Model.Count == 0)
+        {
+            <tr>
+                <td colspan="3" class="text-center text-muted">
+                    Aucune marque supprimée trouvée
+                </td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var marque in Model)
+            {
+                <tr>
+                    <td>@marque.Id</td>
+                    <td>@marque.Name</td>
+                    <td>
+                        <form asp-action="Restore" method="post" style="display:inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@marque.Id" />
+                            <input type="hidden" name="search" value="@ViewBag.Search" />
+                            <button type="submit" class="btn btn-success btn-sm">
+                                ♻ Restaurer
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script>
+        let debounceTimer;
+        document.getElementById('searchInput').addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                const val = this.value.trim();
+                window.location.href = '@Url.Action("Deleted")' + (val ? '?search=' + encodeURIComponent(val) : '');
+            }, 1000);
+        });
+    </script>
+}

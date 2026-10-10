@@ -1,0 +1,83 @@
+﻿@model List<PROJET.Models.Categorie>
+
+@{
+    ViewData["Title"] = "Liste des Categories";
+}
+
+<h2 class="mb-4">Liste des Categories</h2>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+
+        <input type="text"
+               id="searchInput"
+               value="@ViewBag.Search"
+               class="form-control"
+               placeholder="Rechercher une categorie..." />
+    </div>
+
+    <div class="col-md-6 text-end">
+        <a asp-action="Create" class="btn btn-success me-2">
+            + Nouvelle Categorie
+        </a>
+        <a asp-action="Deleted" class="btn btn-secondary">
+            Restaurer
+        </a>
+    </div>
+</div>
+
+<table class="table table-bordered table-striped table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th>Nom</th>
+            <th width="220">Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @if (Model.Count == 0)
+        {
+            <tr>
+                <td colspan="3" class="text-center text-danger">
+                    Aucune categorie trouvée
+                </td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var categorie in Model)
+            {
+                <tr>
+                    <td>@categorie.Name</td>
+
+                    <td>
+                        <a asp-action="Edit"
+                           asp-route-id="@categorie.Id"
+                           class="btn btn-warning btn-sm">
+                            Modifier
+                        </a>
+
+                        <a asp-action="Delete"
+                           asp-route-id="@categorie.Id"
+                           class="btn btn-danger btn-sm">
+                            Supprimer
+                        </a>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script>
+        let debounceTimer;
+        document.getElementById('searchInput').addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                const val = this.value.trim();
+                window.location.href = '@Url.Action("Index")' + (val ? '?search=' + encodeURIComponent(val) : '');
+            }, 1000);
+        });
+    </script>
+}

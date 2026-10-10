@@ -1,0 +1,87 @@
+﻿@model List<PROJET.Models.Produit>
+
+@{
+    ViewData["Title"] = "Produits supprimés";
+}
+
+<h2 class="mb-4">Produits supprimés</h2>
+
+<div class="row mb-3 align-items-center">
+    <div class="col-md-6">
+        <input type="text"
+               id="searchInput"
+               value="@ViewBag.Search"
+               class="form-control"
+               placeholder="Rechercher dans les produits supprimés..." />
+    </div>
+    <div class="col-md-6 text-end">
+        <a asp-action="Index" class="btn btn-secondary">← Retour à la liste</a>
+    </div>
+</div>
+
+<table class="table table-bordered table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th width="70">Image</th>
+            <th>Référence</th>
+            <th>Nom</th>
+            <th>Catégorie</th>
+            <th>Marque</th>
+            <th>Prix</th>
+            <th width="130">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (!Model.Any())
+        {
+            <tr>
+                <td colspan="7" class="text-center text-muted">Aucun produit supprimé trouvé</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var p in Model)
+            {
+                <tr>
+                    <td class="text-center">
+                        @if (!string.IsNullOrEmpty(p.Image))
+                        {
+                            <img src="@p.Image" alt="@p.Nom"
+                                 style="width:44px;height:44px;object-fit:cover;border-radius:6px;opacity:.7;" />
+                        }
+                        else
+                        {
+                            <span style="font-size:22px;opacity:.5;">📦</span>
+                        }
+                    </td>
+                    <td><code>@p.Reference</code></td>
+                    <td>@p.Nom</td>
+                    <td>@p.Categorie?.Name</td>
+                    <td>@p.Marque?.Name</td>
+                    <td>@p.Prix.ToString("N2") DT</td>
+                    <td>
+                        <form asp-action="Restore" method="post" style="display:inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@p.ProduitID" />
+                            <input type="hidden" name="search" value="@ViewBag.Search" />
+                            <button type="submit" class="btn btn-success btn-sm">♻ Restaurer</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script>
+        let debounceTimer;
+        document.getElementById('searchInput').addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                const val = this.value.trim();
+                window.location.href = '@Url.Action("Deleted")' + (val ? '?search=' + encodeURIComponent(val) : '');
+            }, 1000);
+        });
+    </script>
+}

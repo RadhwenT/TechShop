@@ -1,0 +1,61 @@
+﻿@model PROJET.Models.Produit
+
+@{
+    ViewData["Title"] = "Gestion du Stock";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <h2 class="mb-0">Stock : @Model.Nom</h2>
+            <a asp-action="Index" class="btn btn-secondary">Retour</a>
+
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">✅ @TempData["Success"]</div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">❌ @TempData["Error"]</div>
+        }
+
+        <div class="card p-4 mb-3 text-center">
+            @if (!string.IsNullOrEmpty(Model.Image))
+            {
+                <img src="@Model.Image" alt="@Model.Nom"
+                     style="height:100px;object-fit:contain;border-radius:8px;margin-bottom:12px;" />
+            }
+            <div style="font-size:12px;color:var(--text-muted);">Référence : <code>@Model.Reference</code></div>
+            <div style="font-size:40px;font-weight:700;color:var(--text-primary);">@Model.Quantite</div>
+            <div style="font-size:13px;color:var(--text-muted);">unité(s) en stock</div>
+
+            @{
+                string badgeClass = Model.Quantite == 0 ? "bg-danger"
+                : Model.Quantite < 5 ? "bg-warning text-dark"
+                : "bg-success";
+                string badgeLabel = Model.Quantite == 0 ? "Rupture de stock"
+                : Model.Quantite < 5 ? "Stock faible"
+                : "En stock";
+            }
+            <span class="badge @badgeClass mt-2">@badgeLabel</span>
+        </div>
+
+        <div class="card p-3">
+            <h5 class="mb-3">➕ Ajouter au stock</h5>
+            <form asp-action="AjouterStock" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.ProduitID" />
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Quantité à ajouter</label>
+                    <input type="number" name="quantite" class="form-control"
+                           min="1" value="1" required />
+                </div>
+                <button type="submit" class="btn btn-success w-100">Ajouter au stock</button>
+            </form>
+        </div>
+
+    </div>
+</div>
