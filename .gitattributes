@@ -1,0 +1,2 @@
+PROJET/wwwroot/lib/** linguist-vendored
+*.cshtml linguist-language=C#
