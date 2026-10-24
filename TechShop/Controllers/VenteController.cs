@@ -38,7 +38,7 @@ namespace TechShop.Controllers
         {
             int annee = DateTime.Now.Year;
             int count = _context.Factures.Count(f => f.DateFacture.Year == annee) + 1;
-            return $"F-{annee}-{count:D3}";
+            return CalculFacture.Numero(annee, count);
         }
 
         // ── INDEX ────────────────────────────────────────────────────────────
@@ -235,11 +235,8 @@ namespace TechShop.Controllers
                 return View(vm);
             }
 
-            // Calcul des montants
-            decimal ht = vente.Lignes.Sum(l => l.PrixUnitaire * l.Quantite);
-            decimal tva = Math.Round(ht * Facture.TauxTVA, 3);
-            decimal timbre = Facture.MontantTimbre;
-            decimal ttc = ht + tva + timbre;
+            // Calcul des montants (règles fiscales dans CalculFacture)
+            var montants = CalculFacture.Calculer(vente.Lignes);
 
             var facture = new Facture
             {
@@ -252,10 +249,10 @@ namespace TechShop.Controllers
                 Adresse = vm.Adresse,
                 Telephone = vm.Telephone,
                 Email = vm.Email,
-                MontantHT = ht,
-                MontantTVA = tva,
-                Timbre = timbre,
-                MontantTTC = ttc
+                MontantHT = montants.HT,
+                MontantTVA = montants.TVA,
+                Timbre = montants.Timbre,
+                MontantTTC = montants.TTC
             };
 
             vente.Statut = VenteStatut.Facturee;
