@@ -7,8 +7,8 @@ obj/
 *.log
 
 # Images de produits envoyées depuis l'application (données locales)
-PROJET/wwwroot/images/produits/*
-!PROJET/wwwroot/images/produits/.gitkeep
+TechShop/wwwroot/images/produits/*
+!TechShop/wwwroot/images/produits/.gitkeep
 
 # VS Code (on garde la config partagée)
 .vscode/*

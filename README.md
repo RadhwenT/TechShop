@@ -4,9 +4,19 @@ Application web **ASP.NET Core MVC (.NET 10)** de gestion d'un magasin de matér
 
 > Projet réalisé en 2e année de Licence Génie Logiciel et Systèmes d'Information — Institut International de Technologie (IIT, Sfax).
 
-![.NET](https://img.shields.io/badge/.NET-10-512BD4) ![ASP.NET Core MVC](https://img.shields.io/badge/ASP.NET_Core-MVC-blue) ![EF Core](https://img.shields.io/badge/EF_Core-10-6DB33F) ![SQL Server](https://img.shields.io/badge/SQL_Server-CC2927)
+[![CI](https://github.com/RadhwenT/TechShop/actions/workflows/ci.yml/badge.svg)](https://github.com/RadhwenT/TechShop/actions/workflows/ci.yml) ![.NET](https://img.shields.io/badge/.NET-10-512BD4) ![ASP.NET Core MVC](https://img.shields.io/badge/ASP.NET_Core-MVC-blue) ![EF Core](https://img.shields.io/badge/EF_Core-10-6DB33F) ![SQL Server](https://img.shields.io/badge/SQL_Server-CC2927)
 
 ---
+
+## Aperçu
+
+![Facture générée : client moral, TVA 19 %, timbre fiscal et total TTC](docs/captures/facture-totaux.jpg)
+
+| Catalogue des produits | Fiche produit |
+| --- | --- |
+| ![Liste des produits](docs/captures/produits.jpg) | ![Fiche produit](docs/captures/produit-details.jpg) |
+| **Ventes et statut de facturation** | **En-tête de facture** |
+| ![Liste des ventes](docs/captures/ventes.jpg) | ![Facture](docs/captures/facture.jpg) |
 
 ## Fonctionnalités
 
@@ -25,16 +35,28 @@ Application web **ASP.NET Core MVC (.NET 10)** de gestion d'un magasin de matér
   - **Entity Framework Core** (code-first, migrations) pour les produits, ventes, lignes de vente et factures ;
   - **ADO.NET** (`SqlConnection`, requêtes paramétrées) via le pattern **DAO** pour les marques et catégories.
 - **SQL Server** (LocalDB par défaut)
-- Règles métier dans le modèle : `Produit.AjouterStock()` / `RetirerStock()` empêchent un stock négatif
+- Règles métier dans le modèle : `Produit.AjouterStock()` / `RetirerStock()` empêchent un stock négatif ; `CalculFacture` centralise le calcul HT / TVA / timbre / TTC et la numérotation
 - Interface **Bootstrap** avec barre latérale
 
 ```
-PROJET/
+TechShop/
 ├── Controllers/        # Produit, Marque, Categorie, Vente
-├── Models/             # entités, DAO (ADO.NET), Data (DbContext, DbInitializer), ViewModels
+├── Models/             # entités, CalculFacture, DAO (ADO.NET), Data (DbContext, DbInitializer), ViewModels
 ├── Migrations/         # migrations EF Core
 ├── Views/              # vues Razor
 └── wwwroot/            # CSS, JS, bibliothèques, images de produits
+TechShop.Tests/         # tests xUnit (unitaires + intégration sur SQL Server)
+```
+
+## Tests
+
+**28 tests xUnit**, exécutés à chaque push par GitHub Actions :
+
+- **unitaires** : règles de stock (`Produit`), calcul de facture (HT, TVA 19 % arrondie au millime, timbre, TTC) et format du numéro `F-AAAA-NNN` ;
+- **intégration sur un vrai SQL Server** lancé dans Docker par **Testcontainers** : DAO ADO.NET (recherche, doublons insensibles à la casse, suppression logique et restauration, requêtes paramétrées), ventes (décrément du stock, prix figé, refus du stock insuffisant) et factures (montants, numérotation, matricule fiscal obligatoire pour un client moral, une seule facture par vente, vente annulée non facturable).
+
+```bash
+dotnet test     # Docker doit être démarré
 ```
 
 ## Lancer le projet
@@ -54,7 +76,7 @@ Au premier lancement, l'application **crée automatiquement la base** et ajoute 
 Dans VS Code, ouvrez l'onglet *Run and Debug* et lancez **TechShop (LocalDB)**. Ou en ligne de commande :
 
 ```bash
-cd PROJET
+cd TechShop
 dotnet run
 ```
 
@@ -69,7 +91,7 @@ docker compose up -d
 Lancez ensuite **TechShop (SQL Server Docker)** dans VS Code, ou :
 
 ```bash
-cd PROJET
+cd TechShop
 dotnet run --launch-profile docker
 ```
 

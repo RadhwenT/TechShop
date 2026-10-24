@@ -1,0 +1,121 @@
+@model TechShop.Models.Vente
+
+@{
+    ViewData["Title"] = $"Vente #{Model.VenteID}";
+    string badgeClass = Model.Statut switch
+    {
+        TechShop.Models.VenteStatut.EnCours => "bg-warning text-dark",
+        TechShop.Models.VenteStatut.Facturee => "bg-success",
+        TechShop.Models.VenteStatut.Annulee => "bg-danger",
+        _ => "bg-secondary"
+    };
+    string badgeLabel = Model.Statut switch
+    {
+        TechShop.Models.VenteStatut.EnCours => "🟡 En cours",
+        TechShop.Models.VenteStatut.Facturee => "🟢 Facturée",
+        TechShop.Models.VenteStatut.Annulee => "🔴 Annulée",
+        _ => Model.Statut.ToString()
+    };
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+
+        <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+            <h2 class="mb-0">Vente <code>#@Model.VenteID</code></h2>
+            <span class="badge @badgeClass fs-6">@badgeLabel</span>
+            <div class="ms-auto d-flex gap-2 flex-wrap">
+                <a asp-action="Index" class="btn btn-secondary">Retour</a>
+                @if (Model.Statut == TechShop.Models.VenteStatut.EnCours)
+                {
+                    <a asp-action="Facturer" asp-route-id="@Model.VenteID"
+                       class="btn btn-success">🧾 Facturer</a>
+                }
+            </div>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">✅ @TempData["Success"]</div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">❌ @TempData["Error"]</div>
+        }
+
+        <!-- En-tête vente -->
+        <div class="card p-3 mb-3">
+            <div class="row">
+                <div class="col-md-4">
+                    <small class="text-muted d-block">Date de vente</small>
+                    <strong>@Model.DateVente.ToString("dd/MM/yyyy HH:mm")</strong>
+                </div>
+                @if (Model.Facture != null)
+                {
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">N° Facture</small>
+                        <strong><code>@Model.Facture.NumeroFacture</code></strong>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">Client</small>
+                        <strong>@Model.Facture.NomClient</strong>
+                        <span class="badge bg-secondary ms-1">@(Model.Facture.TypeClient == TechShop.Models.TypeClient.Physique ? "Physique" : "Moral")</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Lignes de vente -->
+        <div class="card p-3 mb-3">
+            <h5 class="mb-3">🛒 Produits vendus</h5>
+            <div class="table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Référence</th>
+                        <th>Produit</th>
+                        <th class="text-center">Qté vendue</th>
+                        <th class="text-end">Prix unitaire</th>
+                        <th class="text-end">Sous-total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var l in Model.Lignes)
+                    {
+                        <tr>
+                            <td><code>@l.Produit?.Reference</code></td>
+                            <td>@l.Produit?.Nom</td>
+                            <td class="text-center">@l.Quantite</td>
+                            <td class="text-end">@l.PrixUnitaire.ToString("N3") DT</td>
+                            <td class="text-end fw-bold">@l.SousTotal.ToString("N3") DT</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr class="table-secondary fw-bold">
+                        <td colspan="4" class="text-end">Total HT</td>
+                        <td class="text-end text-primary">@Model.MontantHT.ToString("N3") DT</td>
+                    </tr>
+                    @if (Model.Facture != null)
+                    {
+                        <tr class="table-light">
+                            <td colspan="4" class="text-end">TVA (19 %)</td>
+                            <td class="text-end">@Model.Facture.MontantTVA.ToString("N3") DT</td>
+                        </tr>
+                        <tr class="table-light">
+                            <td colspan="4" class="text-end">Timbre</td>
+                            <td class="text-end">@Model.Facture.Timbre.ToString("N3") DT</td>
+                        </tr>
+                        <tr class="table-success fw-bold">
+                            <td colspan="4" class="text-end">Total TTC</td>
+                            <td class="text-end text-success">@Model.Facture.MontantTTC.ToString("N3") DT</td>
+                        </tr>
+                    }
+                </tfoot>
+            </table>
+            </div>
+        </div>
+
+
+    </div>
+</div>

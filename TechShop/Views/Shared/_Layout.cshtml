@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - TechShop</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/TechShop.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@tabler/icons-webfont@latest/tabler-icons.min.css" />
+</head>
+<body>
+
+    <div class="app-shell">
+
+        <!-- ═══ SIDEBAR ═══ -->
+        <aside class="sidebar" id="sidebar">
+
+            <!-- Logo -->
+            <div class="sidebar-logo">
+                <div class="logo-icon">
+                    <i class="ti ti-cpu"></i>
+                </div>
+                <span class="logo-text">TechShop</span>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="sidebar-nav">
+                <p class="nav-section-label">Catalogue</p>
+                <ul>
+                    <li>
+                        <a asp-controller="Produit" asp-action="Index" class="nav-link-item">
+                            <i class="ti ti-device-laptop"></i>
+                            <span>Produits</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Marque" asp-action="Index" class="nav-link-item">
+                            <i class="ti ti-tag"></i>
+                            <span>Marques</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Categorie" asp-action="Index" class="nav-link-item">
+                            <i class="ti ti-category"></i>
+                            <span>Categories</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <p class="nav-section-label">Gestion</p>
+                <ul>
+                    <li>
+                        <a asp-controller="Vente" asp-action="Index" class="nav-link-item">
+                            <i class="ti ti-receipt"></i>
+                            <span>Ventes</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+
+            </nav>
+
+            <!-- Footer utilisateur -->
+            <div class="sidebar-footer">
+                <div class="user-avatar">
+                    <i class="ti ti-user"></i>
+                </div>
+                <div class="user-info">
+                    <span class="user-name">Administrateur</span>
+                    <span class="user-role">Gestionnaire</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ═══ CONTENU PRINCIPAL ═══ -->
+        <div class="main-wrapper">
+
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Menu">
+                        <i class="ti ti-menu-2"></i>
+                    </button>
+                </div>
+                <div class="topbar-right">
+                    <div class="topbar-icon" title="Notifications">
+                        <i class="ti ti-bell"></i>
+                        <span class="notif-dot"></span>
+                    </div>
+                    <div class="topbar-icon" title="Aide">
+                        <i class="ti ti-help-circle"></i>
+                    </div>
+                    <div class="topbar-divider"></div>
+                    <div class="topbar-brand">TechShop</div>
+                </div>
+            </header>
+
+            <!-- Page body -->
+            <main class="page-content">
+                @RenderBody()
+            </main>
+
+            <!-- Footer -->
+            <footer class="page-footer">
+                <span>&copy; 2026 TechShop &mdash; Gestion de matériel informatique</span>
+            </footer>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        // Toggle sidebar sur mobile
+        document.getElementById('sidebarToggle').addEventListener('click', function () {
+            document.getElementById('sidebar').classList.toggle('sidebar-open');
+        });
+
+        // Active link highlight
+        (function () {
+            const links = document.querySelectorAll('.nav-link-item');
+            const current = window.location.pathname.toLowerCase();
+            links.forEach(function (link) {
+                const href = link.getAttribute('href');
+                if (href && current.startsWith(href.toLowerCase()) && href !== '/') {
+                    link.classList.add('active');
+                }
+            });
+        })();
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

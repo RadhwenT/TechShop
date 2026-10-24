@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Compilation (application + tests)
+        run: dotnet build TechShop.slnx -c Release 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
+
+      - name: Tests (SQL Server lancé par Testcontainers)
+        run: dotnet test TechShop.Tests -c Release --no-build --logger "console;verbosity=normal" 2>&1 | tee test.log; exit ${PIPESTATUS[0]}
+
+      - name: Résumé
+        if: always()
+        run: |
+          grep -hE 'error |Failed |Passed!|Failed!|Total tests|Réussi|Échec' build.log test.log 2>/dev/null | sed 's/%/pct/g; s/::/:/g' | head -40 | cut -c1-300 | tr '\n' '|' > resume.txt
+          echo "::notice::$(cat resume.txt)"
