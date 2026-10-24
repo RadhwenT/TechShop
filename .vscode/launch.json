@@ -6,8 +6,8 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/PROJET/bin/Debug/net10.0/PROJET.dll",
-      "cwd": "${workspaceFolder}/PROJET",
+      "program": "${workspaceFolder}/TechShop/bin/Debug/net10.0/TechShop.dll",
+      "cwd": "${workspaceFolder}/TechShop",
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ASPNETCORE_URLS": "http://localhost:5000"
@@ -22,12 +22,12 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/PROJET/bin/Debug/net10.0/PROJET.dll",
-      "cwd": "${workspaceFolder}/PROJET",
+      "program": "${workspaceFolder}/TechShop/bin/Debug/net10.0/TechShop.dll",
+      "cwd": "${workspaceFolder}/TechShop",
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ASPNETCORE_URLS": "http://localhost:5000",
-        "ConnectionStrings__cnx": "Server=localhost,1433;Database=PROJET;User Id=sa;Password=TechShop_Dev2026!;TrustServerCertificate=True"
+        "ConnectionStrings__cnx": "Server=localhost,1433;Database=TechShop;User Id=sa;Password=TechShop_Dev2026!;TrustServerCertificate=True"
       },
       "serverReadyAction": {
         "action": "openExternally",

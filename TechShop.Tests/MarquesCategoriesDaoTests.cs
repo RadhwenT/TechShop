@@ -1,5 +1,5 @@
-using PROJET.Models;
-using PROJET.Models.DAO;
+using TechShop.Models;
+using TechShop.Models.DAO;
 
 namespace TechShop.Tests;
 

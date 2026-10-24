@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using PROJET.Data;
+using TechShop.Data;
 using Testcontainers.MsSql;
 
 namespace TechShop.Tests;

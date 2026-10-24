@@ -23,7 +23,7 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <ProjectReference Include="../PROJET/PROJET.csproj" />
+    <ProjectReference Include="../TechShop/TechShop.csproj" />
   </ItemGroup>
 
 </Project>

@@ -29,7 +29,7 @@ Application web **ASP.NET Core MVC (.NET 10)** de gestion d'un magasin de matér
 - Interface **Bootstrap** avec barre latérale
 
 ```
-PROJET/
+TechShop/
 ├── Controllers/        # Produit, Marque, Categorie, Vente
 ├── Models/             # entités, DAO (ADO.NET), Data (DbContext, DbInitializer), ViewModels
 ├── Migrations/         # migrations EF Core
@@ -54,7 +54,7 @@ Au premier lancement, l'application **crée automatiquement la base** et ajoute 
 Dans VS Code, ouvrez l'onglet *Run and Debug* et lancez **TechShop (LocalDB)**. Ou en ligne de commande :
 
 ```bash
-cd PROJET
+cd TechShop
 dotnet run
 ```
 
@@ -69,7 +69,7 @@ docker compose up -d
 Lancez ensuite **TechShop (SQL Server Docker)** dans VS Code, ou :
 
 ```bash
-cd PROJET
+cd TechShop
 dotnet run --launch-profile docker
 ```
 

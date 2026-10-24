@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using PROJET.Controllers;
-using PROJET.Models;
-using PROJET.Models.DAO;
-using PROJET.Models.ViewModels;
+using TechShop.Controllers;
+using TechShop.Models;
+using TechShop.Models.DAO;
+using TechShop.Models.ViewModels;
 
 namespace TechShop.Tests;
 
@@ -15,7 +15,7 @@ namespace TechShop.Tests;
 [Collection("Base")]
 public class VentesFacturesTests(BaseDeDonnees bdd)
 {
-    private VenteController Ventes(PROJET.Data.AppDbContext db) =>
+    private VenteController Ventes(TechShop.Data.AppDbContext db) =>
         BaseDeDonnees.AvecTempData(new VenteController(db, bdd.Configuration));
 
     private int CreerProduit(decimal prix, int stock)

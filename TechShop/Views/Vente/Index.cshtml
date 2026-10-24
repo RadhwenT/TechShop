@@ -1,0 +1,222 @@
+@model List<TechShop.Models.Vente>
+
+@{
+    ViewData["Title"] = "Ventes";
+    var annees = ViewBag.Annees as List<int> ?? new List<int>();
+    int? selAnnee = ViewBag.Annee;
+    int? selMois = ViewBag.Mois;
+    int? selJour = ViewBag.Jour;
+    TechShop.Models.VenteStatut? selStatut = ViewBag.Statut;
+    string? search = ViewBag.Search;
+
+    var moisNoms = new[] { "", "Janvier","Février","Mars","Avril","Mai","Juin",
+                               "Juillet","Août","Septembre","Octobre","Novembre","Décembre" };
+}
+
+<div class="d-flex align-items-center gap-3 mb-4">
+    <h2 class="mb-0">Liste des Ventes</h2>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">✅ @TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">❌ @TempData["Error"]</div>
+}
+
+<!-- ── Barre de recherche + filtres ───────────────────────────────── -->
+<form method="get" asp-action="Index" id="filterForm">
+    <div class="card p-3 mb-3">
+        <div class="row g-2 align-items-end">
+
+            <!-- Recherche texte -->
+            <div class="col-md-3 col-xl">
+                <label class="form-label small fw-bold mb-1">🔍 N° Client /facture / Vente</label>
+                <input type="text" name="search" class="form-control form-control-sm text-center"
+                       value="@search"
+                       placeholder="ex: F-2026-001 ou Ahmed" />
+            </div>
+
+            <!-- Année -->
+            <div class="col-md-auto">
+                <label class="form-label small fw-bold mb-1">📅 Année</label>
+                <select name="annee" class="form-control form-control-sm text-center" onchange="this.form.submit()">
+                    <option value="">— Toutes —</option>
+                    @foreach (var a in annees)
+                    {
+                        <option value="@a" selected="@(selAnnee == a)">@a</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Mois -->
+            <div class="col-md-auto">
+                <label class="form-label small fw-bold mb-1">📅 Mois</label>
+                <select name="mois" class="form-control form-control-sm text-center" onchange="this.form.submit()">
+                    <option value="">— Tous —</option>
+                    @for (int m = 1; m <= 12; m++)
+                    {
+                        <option value="@m" selected="@(selMois == m)">@moisNoms[m]</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Jour -->
+            <div class="col-md-auto">
+                <label class="form-label small fw-bold mb-1">📅 Jour</label>
+                <select name="jour" class="form-control form-control-sm text-center" onchange="this.form.submit()">
+                    <option value="">— Tous —</option>
+                    @for (int j = 1; j <= 31; j++)
+                    {
+                        <option value="@j" selected="@(selJour == j)">@j</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Statut -->
+            <div class="col-md-auto">
+                <label class="form-label small fw-bold mb-1">🏷️ Statut</label>
+                <select name="statut" class="form-control form-control-sm text-center" onchange="this.form.submit()">
+                    <option value="">— Tous —</option>
+                    <option value="Facturee" selected="@(selStatut == TechShop.Models.VenteStatut.Facturee)">Facturée</option>
+                    <option value="EnCours" selected="@(selStatut == TechShop.Models.VenteStatut.EnCours)">Non facturée</option>
+                </select>
+            </div>
+
+            <!-- Boutons -->
+            <div class="col-md-auto ms-auto d-flex gap-2">
+                <a asp-action="Index" class="btn btn-secondary btn-sm text-nowrap" title="Effacer les filtres"><i class="ti ti-refresh"></i></a>
+                <a asp-action="Create" class="btn btn-success btn-sm text-nowrap">+ Nouvelle</a>
+            </div>
+        </div>
+
+        @if (selAnnee.HasValue || selMois.HasValue || selJour.HasValue || selStatut.HasValue || !string.IsNullOrWhiteSpace(search))
+        {
+            <div class="mt-2">
+                <small class="text-muted">
+                    Filtres actifs :
+                    @if (!string.IsNullOrWhiteSpace(search)) { <span class="badge bg-secondary me-1">Recherche : @search</span> }
+                    @if (selStatut.HasValue) { <span class="badge @(selStatut.Value == TechShop.Models.VenteStatut.Facturee ? "bg-success" : "bg-warning text-dark") me-1">Statut : @(selStatut.Value == TechShop.Models.VenteStatut.Facturee ? "Facturée" : "Non facturée")</span> }
+                    @if (selAnnee.HasValue) { <span class="badge bg-primary me-1">Année : @selAnnee</span> }
+                    @if (selMois.HasValue) { <span class="badge bg-primary me-1">Mois : @moisNoms[selMois.Value]</span> }
+                    @if (selJour.HasValue) { <span class="badge bg-primary me-1">Jour : @selJour</span> }
+                    — @Model.Count résultat(s)
+                </small>
+            </div>
+        }
+    </div>
+</form>
+
+<!-- ── Tableau ─────────────────────────────────────────────────────── -->
+<div class="table-responsive">
+<table class="table table-bordered table-hover align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>N° Vente</th>
+            <th>Date</th>
+            <th>Produits</th>
+            <th>Client</th>
+            <th>Montant HT</th>
+            <th>Facture</th>
+            <th>Statut</th>
+            <th style="width:260px;">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (!Model.Any())
+        {
+            <tr>
+                <td colspan="7" class="text-center text-danger">Aucune vente trouvée</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var v in Model)
+            {
+                <tr>
+                    <td><code>#@v.VenteID</code></td>
+                    <td>@v.DateVente.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@v.Lignes.Count ligne(s)</td>
+                    <td>
+                        @if (v.Facture != null)
+                        {
+                            <span>@v.Facture.NomClient</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted small">Non facturé</span>
+                        }
+                    </td>
+                    <td>@v.MontantHT.ToString("N3") DT</td>
+                    <td>
+                        @if (v.Facture != null)
+                        {
+                            <code>@v.Facture.NumeroFacture</code>
+                        }
+                        else
+                        {
+                            <span class="text-muted">—</span>
+                        }
+                    </td>
+                    <td>
+                        @{
+                            string badgeClass = v.Statut switch
+                            {
+                                TechShop.Models.VenteStatut.EnCours  => "bg-warning text-dark",
+                                TechShop.Models.VenteStatut.Facturee => "bg-success",
+                                TechShop.Models.VenteStatut.Annulee  => "bg-danger",
+                                _ => "bg-secondary"
+                            };
+                            string badgeLabel = v.Statut switch
+                            {
+                                TechShop.Models.VenteStatut.EnCours  => "🟡 En cours",
+                                TechShop.Models.VenteStatut.Facturee => "🟢 Facturée",
+                                TechShop.Models.VenteStatut.Annulee  => "🔴 Annulée",
+                                _ => v.Statut.ToString()
+                            };
+                        }
+                        <span class="badge @badgeClass">@badgeLabel</span>
+                    </td>
+                    <td>
+                        <!-- Boutons alignés : 3 slots fixes -->
+                        <div class="d-flex gap-1">
+                            <!-- Slot 1 : Détails (toujours présent) -->
+                            <a asp-action="Details" asp-route-id="@v.VenteID"
+                               class="btn btn-primary btn-sm" style="width:76px;">Détails</a>
+
+                            <!-- Slot 2 : Facturer OU Facture OU vide -->
+                            @if (v.Statut == TechShop.Models.VenteStatut.EnCours)
+                            {
+                                <a asp-action="Facturer" asp-route-id="@v.VenteID"
+                                   class="btn btn-success btn-sm" style="width:76px;">Facturer</a>
+                            }
+                            else if (v.Statut == TechShop.Models.VenteStatut.Facturee && v.Facture != null)
+                            {
+                                <a asp-action="AfficherFacture" asp-route-id="@v.Facture.FactureID"
+                                   class="btn btn-info btn-sm" style="width:76px;">Facture</a>
+                            }
+                            else
+                            {
+                                <span style="width:76px;display:inline-block;"></span>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+</div>
+
+@section Scripts {
+    <script>
+        // Soumettre le formulaire sur frappe dans le champ texte (avec délai)
+        let debounceTimer;
+        document.querySelector('input[name="search"]').addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => this.form.submit(), 1200);
+        });
+    </script>
+}

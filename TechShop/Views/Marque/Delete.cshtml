@@ -1,0 +1,51 @@
+﻿@model TechShop.Models.Marque
+
+@{
+    ViewData["Title"] = "Supprimer une Marque";
+}
+
+<h2 class="mb-4 text-danger">Supprimer une Marque</h2>
+
+<div class="alert alert-warning">
+    Êtes-vous sûr de vouloir supprimer cette marque ?
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+
+        <dl class="row">
+            <dt class="col-sm-3">
+                ID
+            </dt>
+
+            <dd class="col-sm-9">
+                @Model.Id
+            </dd>
+
+            <dt class="col-sm-3">
+                Nom
+            </dt>
+
+            <dd class="col-sm-9">
+                @Model.Name
+            </dd>
+        </dl>
+
+        <form asp-action="Delete" method="post">
+
+            <input type="hidden" asp-for="Id" />
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger">
+                    Confirmer la suppression
+                </button>
+
+                <a asp-action="Index" class="btn btn-secondary">
+                    Annuler
+                </a>
+            </div>
+
+        </form>
+
+    </div>
+</div>

@@ -5,7 +5,7 @@
       "label": "build",
       "type": "process",
       "command": "dotnet",
-      "args": ["build", "${workspaceFolder}/PROJET/PROJET.csproj"],
+      "args": ["build", "${workspaceFolder}/TechShop/TechShop.csproj"],
       "group": { "kind": "build", "isDefault": true },
       "problemMatcher": "$msCompile"
     },

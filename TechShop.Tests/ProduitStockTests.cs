@@ -1,4 +1,4 @@
-using PROJET.Models;
+using TechShop.Models;
 
 namespace TechShop.Tests;
 
