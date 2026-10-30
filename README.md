@@ -13,13 +13,25 @@ Application web **ASP.NET Core MVC (.NET 10)** pour un magasin de matériel info
 
 ## Aperçu
 
-![Facture générée : client moral, TVA 19 %, timbre fiscal et total TTC](docs/captures/facture-totaux.jpg)
+### Boutique en ligne (client)
 
-| Catalogue des produits | Fiche produit |
+| Catalogue | Fiche produit |
 | --- | --- |
-| ![Liste des produits](docs/captures/produits.jpg) | ![Fiche produit](docs/captures/produit-details.jpg) |
-| **Ventes et statut de facturation** | **En-tête de facture** |
-| ![Liste des ventes](docs/captures/ventes.jpg) | ![Facture](docs/captures/facture.jpg) |
+| ![Catalogue de la boutique](docs/captures/boutique.jpg) | ![Fiche produit](docs/captures/produit.jpg) |
+| **Panier (prix TTC)** | **Suivi d'une commande livrée** |
+| ![Panier](docs/captures/panier.jpg) | ![Détail d'une commande côté client](docs/captures/commande-client.jpg) |
+
+### Back-office (administrateur)
+
+![Tableau de bord](docs/captures/tableau-de-bord.jpg)
+
+| Commandes en ligne | Validation d'une commande (affectation d'un livreur) |
+| --- | --- |
+| ![Commandes en ligne](docs/captures/commandes.jpg) | ![Détail d'une commande](docs/captures/commande-admin.jpg) |
+| **Facture : HT déduit du prix TTC, TVA 19 %, timbre fiscal** | **Produits et stock** |
+| ![Facture](docs/captures/facture.jpg) | ![Liste des produits](docs/captures/produits.jpg) |
+
+*Captures réalisées avec des données de démonstration fictives.*
 
 ## Fonctionnalités
 
