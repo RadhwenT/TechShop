@@ -41,7 +41,7 @@ public sealed class Requete
             .AddSingleton<IAuthenticationService>(Auth)
             .BuildServiceProvider();
         var http = new DefaultHttpContext { RequestServices = services, User = Utilisateur };
-        http.Features.Set<ISessionFeature>(new SessionFeature { Session = Session });
+        http.Features.Set<ISessionFeature>(new FonctionSession { Session = Session });
         controller.ControllerContext = new ControllerContext { HttpContext = http };
         controller.TempData = new TempDataDictionary(http, new TempDataEnMemoire());
         return controller;
@@ -76,6 +76,11 @@ public sealed class FauxAuthentification : IAuthenticationService
         Task.FromResult(AuthenticateResult.NoResult());
     public Task ChallengeAsync(HttpContext context, string? scheme, AuthenticationProperties? properties) => Task.CompletedTask;
     public Task ForbidAsync(HttpContext context, string? scheme, AuthenticationProperties? properties) => Task.CompletedTask;
+}
+
+public sealed class FonctionSession : ISessionFeature
+{
+    public ISession Session { get; set; } = null!;
 }
 
 public sealed class SessionEnMemoire : ISession
