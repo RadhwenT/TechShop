@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TechShop.Data;
@@ -7,6 +8,7 @@ using TechShop.Models.ViewModels;
 
 namespace TechShop.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class VenteController : Controller
     {
         private readonly AppDbContext _context;
@@ -42,14 +44,22 @@ namespace TechShop.Controllers
         }
 
         // ── INDEX ────────────────────────────────────────────────────────────
-        public async Task<IActionResult> Index(string? search, int? annee, int? mois, int? jour, TechShop.Models.VenteStatut? statut)
+        public async Task<IActionResult> Index(string? search, int? annee, int? mois, int? jour, TechShop.Models.VenteStatut? statut, bool? isFacturee)
         {
             var query = _context.Ventes
                 .Include(v => v.Lignes)
                 .Include(v => v.Facture)
-                .Where(v => v.IsActive)
+                .Where(v => v.IsActive && v.Type == TypeVente.SurPlace)
                 .OrderByDescending(v => v.DateVente)
                 .AsQueryable();
+
+            if (isFacturee.HasValue)
+            {
+                if (isFacturee.Value)
+                    query = query.Where(v => v.Facture != null);
+                else
+                    query = query.Where(v => v.Facture == null);
+            }
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -76,13 +86,14 @@ namespace TechShop.Controllers
             // Listes pour les dropdowns de filtre
             ViewBag.Search = search;
             ViewBag.Statut = statut;
+            ViewBag.IsFacturee = isFacturee;
             ViewBag.Annee = annee;
             ViewBag.Mois = mois;
             ViewBag.Jour = jour;
 
             // Années disponibles dans les ventes (pour le dropdown)
             ViewBag.Annees = await _context.Ventes
-                .Where(v => v.IsActive)
+                .Where(v => v.IsActive && v.Type == TypeVente.SurPlace)
                 .Select(v => v.DateVente.Year)
                 .Distinct()
                 .OrderByDescending(y => y)
@@ -142,7 +153,11 @@ namespace TechShop.Controllers
             }
 
             // Créer la vente
-            var vente = new Vente { DateVente = DateTime.Now };
+            var vente = new Vente { 
+                DateVente = DateTime.Now,
+                Statut = VenteStatut.Validee,
+                Type = TypeVente.SurPlace
+            };
 
             foreach (var ligne in vm.Lignes)
             {
@@ -184,6 +199,7 @@ namespace TechShop.Controllers
             var vente = await _context.Ventes
                 .Include(v => v.Lignes)
                 .Include(v => v.Facture)
+                .Include(v => v.Utilisateur)
                 .FirstOrDefaultAsync(v => v.VenteID == id);
 
             if (vente == null) return NotFound();
@@ -202,6 +218,17 @@ namespace TechShop.Controllers
             ViewBag.Vente = vente;
 
             var vm = new FacturerVM { VenteID = id };
+            
+            // Pre-fill if it's an online order
+            if (vente.Type == TypeVente.EnLigne && vente.Utilisateur != null)
+            {
+                vm.NomClient = vente.Utilisateur.Nom;
+                vm.Email = vente.Utilisateur.Email;
+                vm.Telephone = vente.Utilisateur.Telephone;
+                vm.Adresse = vente.Utilisateur.Adresse;
+                vm.TypeClient = TypeClient.Physique; // Default for users
+            }
+
             return View(vm);
         }
 
@@ -235,7 +262,7 @@ namespace TechShop.Controllers
                 return View(vm);
             }
 
-            // Calcul des montants (règles fiscales dans CalculFacture)
+            // Calcul des montants (le prix unitaire est déjà TTC ; règles dans CalculFacture)
             var montants = CalculFacture.Calculer(vente.Lignes);
 
             var facture = new Facture
@@ -254,8 +281,6 @@ namespace TechShop.Controllers
                 Timbre = montants.Timbre,
                 MontantTTC = montants.TTC
             };
-
-            vente.Statut = VenteStatut.Facturee;
 
             _context.Factures.Add(facture);
             await _context.SaveChangesAsync();

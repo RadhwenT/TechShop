@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace TechShop.Migrations
 {
-    /// <inheritdoc />
     public partial class VenteModule : Migration
     {
         /// <inheritdoc />

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,7 @@ using TechShop.Models.DAO;
 
 namespace TechShop.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class ProduitController : Controller
     {
         private readonly AppDbContext _context;
@@ -22,7 +24,6 @@ namespace TechShop.Controllers
             _categorieDAO = new CategorieDAO(configuration);
         }
 
-        // ── Helpers ─────────────────────────────────────────────────────────
 
         private void PopulateLists(int? selectedCategorie = null, int? selectedMarque = null)
         {
@@ -79,7 +80,22 @@ namespace TechShop.Controllers
                 System.IO.File.Delete(full);
         }
 
-        // ── INDEX ────────────────────────────────────────────────────────────
+        public async Task<IActionResult> Stock(bool alertOnly = true)
+        {
+            var query = _context.Produits.Where(p => p.IsActive);
+            
+            if (alertOnly)
+            {
+                query = query.Where(p => p.Quantite < 5);
+            }
+
+            var produits = await query.OrderBy(p => p.Quantite).ToListAsync();
+            EnrichProduits(produits);
+
+            ViewBag.AlertOnly = alertOnly;
+            return View(produits);
+        }
+
         public async Task<IActionResult> Index(string search, int? marqueId, int? categorieId)
         {
             var query = _context.Produits.Where(p => p.IsActive);
@@ -101,7 +117,6 @@ namespace TechShop.Controllers
             return View(produits);
         }
 
-        // ── DETAILS GET ──────────────────────────────────────────────────────
         public async Task<IActionResult> Details(int id)
         {
             var produit = await _context.Produits.FirstOrDefaultAsync(p => p.ProduitID == id && p.IsActive);
@@ -114,14 +129,12 @@ namespace TechShop.Controllers
             return View(produit);
         }
 
-        // ── CREATE GET ───────────────────────────────────────────────────────
         public IActionResult Create()
         {
             PopulateLists();
             return View();
         }
 
-        // ── CREATE POST ──────────────────────────────────────────────────────
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Produit produit, IFormFile? imageFile)
@@ -152,7 +165,6 @@ namespace TechShop.Controllers
             return View(produit);
         }
 
-        // ── EDIT GET ─────────────────────────────────────────────────────────
         public async Task<IActionResult> Edit(int id)
         {
             var produit = await _context.Produits.FindAsync(id);
@@ -162,7 +174,6 @@ namespace TechShop.Controllers
             return View(produit);
         }
 
-        // ── EDIT POST ────────────────────────────────────────────────────────
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Produit produit, IFormFile? imageFile, bool removeImage = false)
@@ -234,7 +245,6 @@ namespace TechShop.Controllers
             return View(produit);
         }
 
-        // ── DELETE GET ───────────────────────────────────────────────────────
         public async Task<IActionResult> Delete(int id)
         {
             var produit = await _context.Produits
@@ -249,7 +259,6 @@ namespace TechShop.Controllers
             return View(produit);
         }
 
-        // ── DELETE POST ──────────────────────────────────────────────────────
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -263,7 +272,6 @@ namespace TechShop.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // ── DELETED (archive) ────────────────────────────────────────────────
         public async Task<IActionResult> Deleted(string search)
         {
             var query = _context.Produits.Where(p => !p.IsActive);
@@ -278,7 +286,6 @@ namespace TechShop.Controllers
             return View(produits);
         }
 
-        // ── RESTORE ──────────────────────────────────────────────────────────
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Restore(int id, string search)
@@ -292,8 +299,7 @@ namespace TechShop.Controllers
             return RedirectToAction(nameof(Deleted), new { search });
         }
 
-        // ── STOCK ────────────────────────────────────────────────────────────
-        public async Task<IActionResult> Stock(int id)
+        public async Task<IActionResult> ManageStock(int id)
         {
             var produit = await _context.Produits.FindAsync(id);
             if (produit == null || !produit.IsActive) return NotFound();
@@ -318,7 +324,7 @@ namespace TechShop.Controllers
                 TempData["Error"] = ex.Message;
             }
 
-            return RedirectToAction(nameof(Stock), new { id });
+            return RedirectToAction(nameof(ManageStock), new { id });
         }
 
         [HttpPost]
@@ -339,7 +345,7 @@ namespace TechShop.Controllers
                 TempData["Error"] = ex.Message;
             }
 
-            return RedirectToAction(nameof(Stock), new { id });
+            return RedirectToAction(nameof(ManageStock), new { id });
         }
     }
 }

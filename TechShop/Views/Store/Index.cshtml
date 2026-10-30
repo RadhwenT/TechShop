@@ -1,0 +1,139 @@
+@model List<TechShop.Models.Produit>
+
+@{
+    ViewData["Title"] = "Notre Catalogue";
+    Layout = "_StoreLayout";
+}
+
+<style>
+    .product-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: none;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+    .product-img-wrapper {
+        height: 200px;
+        width: 100%;
+        background: #f8fafc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    .product-img-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .badge-stock {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 10;
+        font-size: 0.8rem;
+    }
+</style>
+
+<div class="row mb-4">
+    <div class="col-12 text-center mb-4">
+        <h1 style="font-weight: 700; color: var(--text-main);">Découvrez nos Produits</h1>
+        <p class="text-muted">Des équipements de qualité au meilleur prix.</p>
+    </div>
+</div>
+
+<form method="get" asp-action="Index" id="storeFilterForm" class="mb-5 bg-white p-3 shadow-sm rounded-3">
+    <div class="row g-2 align-items-center">
+        <div class="col-md-5">
+            <div class="input-group">
+                <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" name="search" id="searchInput" value="@ViewBag.Search" class="form-control border-start-0" placeholder="Rechercher un produit..." />
+            </div>
+        </div>
+        <div class="col-md-3">
+            <select name="categorieId" id="categorieSelect" class="form-select" asp-items="ViewBag.Categories">
+                <option value="">Toutes les catégories</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="marqueId" id="marqueSelect" class="form-select" asp-items="ViewBag.Marques">
+                <option value="">Toutes les marques</option>
+            </select>
+        </div>
+        <div class="col-md-1 text-end">
+            <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel"></i></button>
+        </div>
+    </div>
+</form>
+
+<div class="row g-4">
+    @if (!Model.Any())
+    {
+        <div class="col-12 text-center py-5">
+            <i class="bi bi-box-seam text-muted" style="font-size: 4rem;"></i>
+            <h4 class="mt-3 text-muted">Aucun produit ne correspond à votre recherche.</h4>
+        </div>
+    }
+    else
+    {
+        @foreach (var p in Model)
+        {
+            <div class="col-12 col-md-4 col-lg-3">
+                <div class="card h-100 shadow-sm product-card position-relative">
+                    @if (p.Quantite > 0)
+                    {
+                        <span class="badge bg-success badge-stock">En stock (@p.Quantite)</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger badge-stock">Épuisé</span>
+                    }
+
+                    <div class="product-img-wrapper">
+                        @if (!string.IsNullOrEmpty(p.Image))
+                        {
+                            <img src="@p.Image" alt="@p.Nom" />
+                        }
+                        else
+                        {
+                            <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                        }
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <div class="mb-2">
+                            <span class="badge bg-light text-dark border">@p.Marque?.Name</span>
+                            <span class="badge bg-light text-dark border">@p.Categorie?.Name</span>
+                        </div>
+                        <h5 class="card-title fw-bold text-truncate" title="@p.Nom">@p.Nom</h5>
+                        <p class="card-text text-primary fw-bold fs-5 mt-auto">@p.Prix.ToString("N2") DT</p>
+                        
+                        <a asp-action="Details" asp-route-id="@p.ProduitID" class="btn btn-outline-primary mt-3 w-100 stretched-link" style="font-weight: 500;">
+                            Voir détails
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@section Scripts {
+    <script>
+        let debounceTimer;
+        const form = document.getElementById('storeFilterForm');
+        
+        document.getElementById('searchInput').addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                form.submit();
+            }, 800);
+        });
+
+        document.getElementById('categorieSelect').addEventListener('change', function() { form.submit(); });
+        document.getElementById('marqueSelect').addEventListener('change', function() { form.submit(); });
+    </script>
+}

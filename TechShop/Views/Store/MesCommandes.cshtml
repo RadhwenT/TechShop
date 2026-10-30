@@ -1,0 +1,107 @@
+@model IEnumerable<TechShop.Models.Vente>
+
+@{
+    ViewData["Title"] = "Mes Commandes";
+    Layout = "_StoreLayout";
+}
+
+<div class="row mt-4">
+    <div class="col-12 mb-4">
+        <h2 class="fw-bold"><i class="bi bi-box-seam me-2"></i> Mes Commandes</h2>
+    </div>
+</div>
+
+<div class="row">
+    @if (!Model.Any())
+    {
+        <div class="col-12 text-center py-5 bg-white shadow-sm rounded-4">
+            <i class="bi bi-bag-x text-muted" style="font-size: 4rem;"></i>
+            <h3 class="mt-4 text-muted">Vous n'avez pas encore passé de commande.</h3>
+            <a asp-controller="Store" asp-action="Index" class="btn btn-primary mt-3 px-4">Découvrir nos produits</a>
+        </div>
+    }
+    else
+    {
+        <div class="col-12">
+            @foreach (var commande in Model)
+            {
+                <div class="card shadow-sm border-0 rounded-4 mb-4 overflow-hidden">
+                    <div class="card-header bg-white border-bottom py-3 px-4">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <div>
+                                <span class="text-muted small text-uppercase fw-bold">Commande</span>
+                                <div class="fw-bold fs-5">#@commande.VenteID</div>
+                                <div class="text-muted small">@commande.DateVente.ToString("dd MMMM yyyy 'à' HH:mm")</div>
+                            </div>
+                            <div class="text-md-end">
+                                @{
+                                    string badgeClass = commande.Statut switch
+                                    {
+                                        TechShop.Models.VenteStatut.EnAttente => "bg-warning text-dark",
+                                        TechShop.Models.VenteStatut.Validee => "bg-info text-white",
+                                        TechShop.Models.VenteStatut.EnExpedition => "bg-primary",
+                                        TechShop.Models.VenteStatut.Livree => "bg-success",
+                                        TechShop.Models.VenteStatut.Annulee => "bg-danger",
+                                        _ => "bg-secondary"
+                                    };
+                                    string statusLabel = commande.Statut switch
+                                    {
+                                        TechShop.Models.VenteStatut.EnAttente => "En attente de validation",
+                                        TechShop.Models.VenteStatut.Validee => "Validée & en préparation",
+                                        TechShop.Models.VenteStatut.EnExpedition => "En cours de livraison",
+                                        TechShop.Models.VenteStatut.Livree => "Livrée",
+                                        TechShop.Models.VenteStatut.Annulee => "Annulée",
+                                        _ => commande.Statut.ToString()
+                                    };
+                                }
+                                <span class="badge @badgeClass px-3 py-2 fs-6 mb-1">@statusLabel</span>
+                                <div class="fw-bold text-primary fs-5">@commande.MontantHT.ToString("N2") DT</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body px-4 py-3">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <div class="d-flex flex-wrap gap-3">
+                                    @foreach (var ligne in commande.Lignes.Take(4))
+                                    {
+                                        <div class="position-relative" title="@ligne.Produit?.Nom">
+                                            @if (!string.IsNullOrEmpty(ligne.Produit?.Image))
+                                            {
+                                                <img src="@ligne.Produit.Image" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid #eee;" />
+                                            }
+                                            else
+                                            {
+                                                <div style="width: 60px; height: 60px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1px solid #eee;">
+                                                    <i class="bi bi-image text-muted"></i>
+                                                </div>
+                                            }
+                                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark text-white border border-light" style="font-size: 0.65rem;">
+                                                x@(ligne.Quantite)
+                                            </span>
+                                        </div>
+                                    }
+                                    @if (commande.Lignes.Count > 4)
+                                    {
+                                        <div style="width: 60px; height: 60px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1px solid #eee; font-weight: bold; color: #666;">
+                                            +@(commande.Lignes.Count - 4)
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                                @if (commande.Livreur != null && (commande.Statut == TechShop.Models.VenteStatut.EnExpedition))
+                                {
+                                    <div class="alert alert-info py-2 small mb-2 d-inline-block text-start">
+                                        <i class="bi bi-truck me-1"></i> Livreur : <strong>@commande.Livreur.Prenom</strong> (@commande.Livreur.Telephone)
+                                    </div>
+                                }
+                                <a asp-action="MaCommandeDetails" asp-route-id="@commande.VenteID" class="btn btn-outline-primary rounded-pill px-4">Détails commande</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

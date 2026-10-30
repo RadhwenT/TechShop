@@ -8,16 +8,20 @@
 <div class="row justify-content-center">
     <div class="col-lg-9">
 
-        <!-- Barre d'actions (hors impression) -->
         <div class="d-flex gap-2 mb-3 no-print">
-            <a asp-action="Index" class="btn btn-secondary">Retour</a>
+            @if (Model.Vente?.Type == TechShop.Models.TypeVente.EnLigne)
+            {
+                <a asp-controller="Commande" asp-action="Index" class="btn btn-secondary">Retour</a>
+            }
+            else
+            {
+                <a asp-controller="Vente" asp-action="Index" class="btn btn-secondary">Retour</a>
+            }
             <button onclick="window.print()" class="btn btn-primary">🖨️ Imprimer</button>
         </div>
 
-        <!-- ══════════════ ZONE FACTURE ══════════════ -->
         <div class="card p-4" id="factureZone">
 
-            <!-- En-tête : société + numéro facture -->
             <div class="row mb-4">
                 <div class="col-6">
                     <div style="font-size:22px;font-weight:700;color:var(--blue-main,#1a6fc4);">TechShop</div>
@@ -34,7 +38,6 @@
 
             <hr />
 
-            <!-- Informations client -->
             <div class="mb-4">
                 <h6 class="text-muted text-uppercase" style="font-size:11px;letter-spacing:1px;">Client</h6>
                 <div><strong>@Model.NomClient</strong>
@@ -58,7 +61,6 @@
                 }
             </div>
 
-            <!-- Tableau des lignes -->
             <div class="table-responsive">
             <table class="table table-bordered align-middle mb-0">
                 <thead style="background:#1a6fc4;color:#fff;">
@@ -67,8 +69,8 @@
                         <th>Référence</th>
                         <th>Désignation</th>
                         <th class="text-center">Qté</th>
-                        <th class="text-end">Prix unit. HT</th>
-                        <th class="text-end">Total HT</th>
+                        <th class="text-end">Prix unit. TTC</th>
+                        <th class="text-end">Total TTC</th>
                     </tr>
                 </thead>
                 </thead>

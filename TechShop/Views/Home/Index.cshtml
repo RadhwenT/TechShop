@@ -1,0 +1,212 @@
+@model TechShop.Models.ViewModels.DashboardVM
+
+@{
+    ViewData["Title"] = "Tableau de bord";
+}
+
+<div class="container-fluid py-4">
+    
+    <div class="row g-4 mb-4">
+        <!-- Chiffre d'Affaires -->
+        <div class="col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-3">
+                <div class="d-flex align-items-center">
+                    <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-4 me-3">
+                        <i class="ti ti-currency-dollar fs-2"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted small mb-1">Chiffre d'Affaires</p>
+                        <h4 class="fw-bold mb-0">@Model.ChiffreAffaireTotal.ToString("N3") DT</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Commandes En Ligne -->
+        <div class="col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-3">
+                <div class="d-flex align-items-center">
+                    <div class="bg-info bg-opacity-10 text-info p-3 rounded-4 me-3">
+                        <i class="ti ti-shopping-cart fs-2"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted small mb-1">Commandes En Ligne</p>
+                        <h4 class="fw-bold mb-0">@Model.TotalCommandesEnLigne</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clients -->
+        <div class="col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-3">
+                <div class="d-flex align-items-center">
+                    <div class="bg-success bg-opacity-10 text-success p-3 rounded-4 me-3">
+                        <i class="ti ti-users fs-2"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted small mb-1">Total Clients</p>
+                        <h4 class="fw-bold mb-0">@Model.TotalClients</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alertes Stock -->
+        <div class="col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-3">
+                <div class="d-flex align-items-center">
+                    <div class="bg-danger bg-opacity-10 text-danger p-3 rounded-4 me-3">
+                        <i class="ti ti-alert-triangle fs-2"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted small mb-1">Alertes Stock</p>
+                        <h4 class="fw-bold mb-0">@Model.AlertesStock</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- Graphique des ventes -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                <h5 class="fw-bold mb-4">Évolution du Revenu (7 derniers jours)</h5>
+                <canvas id="salesChart" style="max-height: 300px;"></canvas>
+            </div>
+        </div>
+
+        <!-- Répartition par statut -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                <h5 class="fw-bold mb-4">Statuts des Commandes</h5>
+                <canvas id="statusChart" style="max-height: 250px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Best Sellers -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-0 py-3 px-4">
+                    <h5 class="fw-bold mb-0">🔥 Top 5 - Meilleures Ventes</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">Produit</th>
+                                    <th class="text-center">Vendus</th>
+                                    <th class="text-end pe-4">Revenu</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.BestSellers)
+                                {
+                                    <tr>
+                                        <td class="ps-4">
+                                            <div class="d-flex align-items-center">
+                                                @if (!string.IsNullOrEmpty(item.Image)) {
+                                                    <img src="@item.Image" class="rounded-3 me-3" style="width: 40px; height: 40px; object-fit: cover;" />
+                                                }
+                                                <div class="fw-bold small">@item.ProduitNom</div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">@item.QuantiteVendue</td>
+                                        <td class="text-end pe-4 fw-bold text-primary">@item.Revenu.ToString("N2") DT</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vision Stock Rapide -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-4">
+                <h5 class="fw-bold mb-4">Vue d'ensemble du Stock</h5>
+                <div class="d-flex align-items-center mb-4">
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small text-muted">Disponibilité globale</span>
+                            <span class="small fw-bold">@Model.TotalProduits produits</span>
+                        </div>
+                        <div class="progress rounded-pill" style="height: 10px;">
+                            <div class="progress-bar bg-primary" style="width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="alert @(Model.AlertesStock > 0 ? "alert-warning" : "alert-success") border-0 rounded-4 p-3 small mb-0">
+                    <i class="ti @(Model.AlertesStock > 0 ? "ti-alert-circle" : "ti-check") me-2"></i>
+                    @if (Model.AlertesStock > 0) {
+                        <span><strong>Attention :</strong> @Model.AlertesStock produits sont en dessous du seuil critique (5 unités).</span>
+                    } else {
+                        <span>Tout votre stock est à un niveau satisfaisant.</span>
+                    }
+                </div>
+                <a asp-controller="Produit" asp-action="Stock" class="btn btn-light w-100 rounded-pill mt-4">
+                    Voir le rapport détaillé
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Graphique des ventes (Line Chart)
+        const salesCtx = document.getElementById('salesChart').getContext('2d');
+        new Chart(salesCtx, {
+            type: 'line',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.ChartLabels)),
+                datasets: [{
+                    label: 'Revenu (DT)',
+                    data: @Html.Raw(Json.Serialize(Model.ChartData)),
+                    borderColor: '#1a6fc4',
+                    backgroundColor: 'rgba(26, 111, 196, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#1a6fc4'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { borderDash: [5, 5] } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // Graphique des statuts (Doughnut Chart)
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        const statusData = @Html.Raw(Json.Serialize(Model.StatusDistribution));
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(statusData),
+                datasets: [{
+                    data: Object.values(statusData),
+                    backgroundColor: ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#6366f1'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
+                }
+            }
+        });
+    </script>
+}

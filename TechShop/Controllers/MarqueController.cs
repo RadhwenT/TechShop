@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TechShop.Models;
 using TechShop.Models.DAO;
 
 namespace TechShop.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class MarqueController : Controller
     {
         private readonly MarqueDAO _marqueDAO;

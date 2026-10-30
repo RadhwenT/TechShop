@@ -13,7 +13,6 @@ namespace TechShop.Models.ViewModels
         [StringLength(100)]
         public string NomClient { get; set; } = string.Empty;
 
-        /// <summary>Matricule fiscal – obligatoire si TypeClient = Morale</summary>
         [StringLength(20)]
         public string? MatriculeFiscal { get; set; }
 

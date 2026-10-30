@@ -4,17 +4,12 @@
     ViewData["Title"] = $"Vente #{Model.VenteID}";
     string badgeClass = Model.Statut switch
     {
-        TechShop.Models.VenteStatut.EnCours => "bg-warning text-dark",
-        TechShop.Models.VenteStatut.Facturee => "bg-success",
+        TechShop.Models.VenteStatut.EnAttente => "bg-warning text-dark",
+        TechShop.Models.VenteStatut.Validee => "bg-info text-white",
+        TechShop.Models.VenteStatut.EnExpedition => "bg-primary",
+        TechShop.Models.VenteStatut.Livree => "bg-success",
         TechShop.Models.VenteStatut.Annulee => "bg-danger",
         _ => "bg-secondary"
-    };
-    string badgeLabel = Model.Statut switch
-    {
-        TechShop.Models.VenteStatut.EnCours => "🟡 En cours",
-        TechShop.Models.VenteStatut.Facturee => "🟢 Facturée",
-        TechShop.Models.VenteStatut.Annulee => "🔴 Annulée",
-        _ => Model.Statut.ToString()
     };
 }
 
@@ -23,10 +18,29 @@
 
         <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
             <h2 class="mb-0">Vente <code>#@Model.VenteID</code></h2>
-            <span class="badge @badgeClass fs-6">@badgeLabel</span>
+            
+            <span class="badge @badgeClass fs-6">État: @Model.Statut</span>
+
+            @if (Model.Facture != null)
+            {
+                <span class="badge bg-success fs-6">🟢 Facturée</span>
+            }
+            else
+            {
+                <span class="badge bg-secondary fs-6">🟡 Non facturée</span>
+            }
+
             <div class="ms-auto d-flex gap-2 flex-wrap">
-                <a asp-action="Index" class="btn btn-secondary">Retour</a>
-                @if (Model.Statut == TechShop.Models.VenteStatut.EnCours)
+                @if (Model.Type == TechShop.Models.TypeVente.EnLigne)
+                {
+                    <a asp-controller="Commande" asp-action="Index" class="btn btn-secondary">Retour</a>
+                }
+                else
+                {
+                    <a asp-controller="Vente" asp-action="Index" class="btn btn-secondary">Retour</a>
+                }
+                
+                @if (Model.Facture == null && Model.Statut != TechShop.Models.VenteStatut.Annulee)
                 {
                     <a asp-action="Facturer" asp-route-id="@Model.VenteID"
                        class="btn btn-success">🧾 Facturer</a>
@@ -43,7 +57,6 @@
             <div class="alert alert-danger">❌ @TempData["Error"]</div>
         }
 
-        <!-- En-tête vente -->
         <div class="card p-3 mb-3">
             <div class="row">
                 <div class="col-md-4">
@@ -65,7 +78,6 @@
             </div>
         </div>
 
-        <!-- Lignes de vente -->
         <div class="card p-3 mb-3">
             <h5 class="mb-3">🛒 Produits vendus</h5>
             <div class="table-responsive">
@@ -93,7 +105,7 @@
                 </tbody>
                 <tfoot>
                     <tr class="table-secondary fw-bold">
-                        <td colspan="4" class="text-end">Total HT</td>
+                        <td colspan="4" class="text-end">Total TTC (Articles)</td>
                         <td class="text-end text-primary">@Model.MontantHT.ToString("N3") DT</td>
                     </tr>
                     @if (Model.Facture != null)

@@ -1,0 +1,57 @@
+@model TechShop.Models.Produit
+
+@{
+    ViewData["Title"] = "Gestion du stock";
+}
+
+<div class="d-flex align-items-center mb-4">
+    <a asp-action="Index" class="btn btn-secondary">Retour</a>
+    <h2 class="fw-bold m-0">Gestion du stock : @Model.Nom</h2>
+</div>
+
+<div class="row g-4">
+    <!-- Info Produit -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 text-center p-4">
+            @if (!string.IsNullOrEmpty(Model.Image))
+            {
+                <img src="@Model.Image" class="rounded-4 mx-auto mb-3" style="width: 150px; height: 150px; object-fit: cover;" />
+            }
+            <div class="badge bg-primary mb-2">@Model.Reference</div>
+            <h4 class="fw-bold mb-3">@Model.Nom</h4>
+            <div class="display-4 fw-bold text-primary mb-1">@Model.Quantite</div>
+            <p class="text-muted small">unités en stock actuellement</p>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+            <h5 class="fw-bold mb-4"><i class="ti ti-plus text-success me-2"></i> Ajouter au stock</h5>
+            <form asp-action="AjouterStock" method="post" class="row g-3 align-items-end">
+                <input type="hidden" name="id" value="@Model.ProduitID" />
+                <div class="col-md-8">
+                    <label class="form-label small fw-bold">Quantité à ajouter</label>
+                    <input type="number" name="quantite" class="form-control" min="1" required />
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-success w-100">Confirmer l'ajout</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 p-4">
+            <h5 class="fw-bold mb-4"><i class="ti ti-minus text-danger me-2"></i> Retirer du stock</h5>
+            <form asp-action="RetirerStock" method="post" class="row g-3 align-items-end">
+                <input type="hidden" name="id" value="@Model.ProduitID" />
+                <div class="col-md-8">
+                    <label class="form-label small fw-bold">Quantité à retirer</label>
+                    <input type="number" name="quantite" class="form-control" min="1" max="@Model.Quantite" required />
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-danger w-100">Confirmer le retrait</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,136 @@
+@model TechShop.Models.Vente
+
+@{
+    ViewData["Title"] = $"Détails Commande #{Model.VenteID}";
+    Layout = "_StoreLayout";
+}
+
+<div class="row mt-4">
+    <div class="col-12 mb-4">
+        <a asp-action="MesCommandes" class="btn btn-light rounded-pill mb-3"><i class="bi bi-arrow-left"></i> Retour à mes commandes</a>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <h2 class="fw-bold m-0">Commande #@Model.VenteID</h2>
+            @{
+                string badgeClass = Model.Statut switch
+                {
+                    TechShop.Models.VenteStatut.EnAttente => "bg-warning text-dark",
+                    TechShop.Models.VenteStatut.Validee => "bg-info text-white",
+                    TechShop.Models.VenteStatut.EnExpedition => "bg-primary",
+                    TechShop.Models.VenteStatut.Livree => "bg-success",
+                    TechShop.Models.VenteStatut.Annulee => "bg-danger",
+                    _ => "bg-secondary"
+                };
+                string statusLabel = Model.Statut switch
+                {
+                    TechShop.Models.VenteStatut.EnAttente => "En attente de validation",
+                    TechShop.Models.VenteStatut.Validee => "Validée & en préparation",
+                    TechShop.Models.VenteStatut.EnExpedition => "En cours de livraison",
+                    TechShop.Models.VenteStatut.Livree => "Livrée",
+                    TechShop.Models.VenteStatut.Annulee => "Annulée",
+                    _ => Model.Statut.ToString()
+                };
+            }
+            <span class="badge @badgeClass px-4 py-2 fs-6 rounded-pill">@statusLabel</span>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0 rounded-4 mb-4 overflow-hidden">
+            <div class="card-header bg-white py-3 px-4">
+                <h5 class="fw-bold mb-0">Articles commandés</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Produit</th>
+                                <th class="text-center">Quantité</th>
+                                <th class="text-end pe-4">Prix</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Lignes)
+                            {
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center py-2">
+                                            @if (!string.IsNullOrEmpty(item.Produit?.Image))
+                                            {
+                                                <img src="@item.Produit.Image" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; margin-right: 15px;" />
+                                            }
+                                            <div>
+                                                <div class="fw-bold">@item.Produit?.Nom</div>
+                                                <small class="text-muted">Prix unitaire: @item.PrixUnitaire.ToString("N2") DT</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center fw-bold">x @item.Quantite</td>
+                                    <td class="text-end pe-4 fw-bold text-primary">@item.SousTotal.ToString("N2") DT</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <td colspan="2" class="text-end ps-4 fw-bold py-3 fs-5">TOTAL (TTC)</td>
+                                <td class="pe-4 text-end fw-bold py-3 fs-5 text-primary">@Model.MontantHT.ToString("N2") DT</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0 rounded-4 mb-4 p-4">
+            <h5 class="fw-bold mb-4">Informations de livraison</h5>
+            
+            <div class="mb-4">
+                <div class="text-muted small text-uppercase fw-bold mb-2">Statut actuel</div>
+                <p class="mb-0">
+                    <i class="bi bi-clock-history me-2 text-primary"></i> 
+                    @statusLabel
+                </p>
+            </div>
+
+            @if (Model.Livreur != null)
+            {
+                <div class="mb-4 pt-3 border-top">
+                    <div class="text-muted small text-uppercase fw-bold mb-2">Livreur assigné</div>
+                    <div class="d-flex align-items-center">
+                        <div class="bg-light rounded-circle p-3 me-3 text-primary">
+                            <i class="bi bi-person-badge fs-4"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold">@Model.Livreur.NomComplet</div>
+                            <div class="text-muted small"><i class="bi bi-telephone me-1"></i> @Model.Livreur.Telephone</div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <div class="pt-3 border-top">
+                <div class="text-muted small text-uppercase fw-bold mb-2">Adresse de livraison</div>
+                <p class="mb-0 text-muted">
+                    <i class="bi bi-geo-alt me-2"></i> @(Model.Utilisateur?.Adresse ?? "N/A")
+                </p>
+            </div>
+
+            @if (Model.Facture != null)
+            {
+                <div class="mt-4 pt-3 border-top">
+                    <a asp-action="AfficherFacture" asp-route-id="@Model.Facture.FactureID" class="btn btn-outline-info w-100 rounded-pill">
+                        <i class="ti ti-printer me-2"></i> Voir / Imprimer la facture
+                    </a>
+                </div>
+            }
+        </div>
+
+        <div class="alert alert-secondary border-0 rounded-4 p-3 small text-center">
+            <i class="bi bi-info-circle me-2"></i> Pour toute modification, veuillez nous contacter par téléphone.
+        </div>
+    </div>
+</div>

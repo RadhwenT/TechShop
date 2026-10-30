@@ -4,18 +4,20 @@ namespace TechShop.Models
     public record MontantsFacture(decimal HT, decimal TVA, decimal Timbre, decimal TTC);
 
     /// <summary>
-    /// Règles de facturation, isolées du contrôleur pour être testables :
-    /// HT = somme des lignes (prix figé à la vente), TVA 19 % arrondie au millime,
-    /// timbre fiscal de 1 DT, TTC = HT + TVA + timbre ; numéro F-AAAA-NNN.
+    /// Règles de facturation, isolées du contrôleur pour être testables.
+    /// Les prix du catalogue sont TTC (TVA 19 % incluse) :
+    /// total des lignes = TTC des produits, HT = total / 1,19 arrondi au millime,
+    /// TVA = total - HT, timbre fiscal de 1 DT, net à payer = total + timbre ; numéro F-AAAA-NNN.
     /// </summary>
     public static class CalculFacture
     {
         public static MontantsFacture Calculer(IEnumerable<VenteLigne> lignes)
         {
-            decimal ht = lignes.Sum(l => l.PrixUnitaire * l.Quantite);
-            decimal tva = Math.Round(ht * Facture.TauxTVA, 3);
+            decimal totalProduitsTTC = lignes.Sum(l => l.PrixUnitaire * l.Quantite);
+            decimal ht = Math.Round(totalProduitsTTC / (1 + Facture.TauxTVA), 3);
+            decimal tva = totalProduitsTTC - ht;
             decimal timbre = Facture.MontantTimbre;
-            return new MontantsFacture(ht, tva, timbre, ht + tva + timbre);
+            return new MontantsFacture(ht, tva, timbre, totalProduitsTTC + timbre);
         }
 
         /// <param name="annee">Année de la facture.</param>

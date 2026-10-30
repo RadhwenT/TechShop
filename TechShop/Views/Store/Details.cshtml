@@ -1,0 +1,85 @@
+@model TechShop.Models.Produit
+
+@{
+    ViewData["Title"] = Model.Nom;
+    Layout = "_StoreLayout";
+}
+
+<div class="row mt-4">
+    <div class="col-12 mb-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="Index" class="text-decoration-none">Boutique</a></li>
+                <li class="breadcrumb-item active" aria-current="page">@Model.Nom</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-5">
+    <div class="row g-0">
+        <div class="col-md-5 bg-light d-flex align-items-center justify-content-center p-4">
+            @if (!string.IsNullOrEmpty(Model.Image))
+            {
+                <img src="@Model.Image" alt="@Model.Nom" class="img-fluid rounded shadow-sm" style="max-height: 400px; object-fit: contain;" />
+            }
+            else
+            {
+                <i class="bi bi-image text-muted" style="font-size: 8rem;"></i>
+            }
+        </div>
+        <div class="col-md-7">
+            <div class="card-body p-5 d-flex flex-column h-100">
+                <div class="mb-2">
+                    <span class="badge bg-secondary">@Model.Categorie?.Name</span>
+                    <span class="badge bg-info text-dark">@Model.Marque?.Name</span>
+                </div>
+                
+                <h1 class="card-title fw-bold mb-3" style="font-size: 2.5rem; color: var(--text-main);">@Model.Nom</h1>
+                <p class="text-muted mb-4">Réf : <code>@Model.Reference</code></p>
+
+                <h2 class="text-primary fw-bold mb-4">@Model.Prix.ToString("N2") DT</h2>
+
+                <div class="mb-4">
+                    <h5 class="fw-bold">Description</h5>
+                    <p style="color: var(--text-muted); line-height: 1.6;">
+                        @(string.IsNullOrWhiteSpace(Model.Description) ? "Aucune description disponible pour ce produit." : Model.Description)
+                    </p>
+                </div>
+
+                <div class="mt-auto p-4 bg-light rounded-3">
+                    @if (Model.Quantite > 0)
+                    {
+                        <div class="d-flex align-items-center text-success mb-3">
+                            <i class="bi bi-check-circle-fill me-2 fs-5"></i> 
+                            <span class="fw-bold">En stock (@Model.Quantite disponibles)</span>
+                        </div>
+                        
+                        <form asp-controller="Cart" asp-action="Add" method="post" class="row g-2 align-items-center">
+                            <input type="hidden" name="produitId" value="@Model.ProduitID" />
+                            <div class="col-auto">
+                                <label for="quantite" class="col-form-label fw-bold">Quantité :</label>
+                            </div>
+                            <div class="col-auto">
+                                <input type="number" name="quantite" id="quantite" class="form-control text-center" value="1" min="1" max="@Model.Quantite" style="width: 80px;" />
+                            </div>
+                            <div class="col">
+                                <button type="submit" class="btn btn-primary w-100 fw-bold" style="padding: 0.6rem;">
+                                    <i class="bi bi-cart-plus me-2"></i> Ajouter au panier
+                                </button>
+                            </div>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="d-flex align-items-center text-danger mb-0">
+                            <i class="bi bi-x-circle-fill me-2 fs-5"></i> 
+                            <span class="fw-bold">Rupture de stock</span>
+                        </div>
+                        <button class="btn btn-secondary w-100 mt-3" disabled>Indisponible</button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
