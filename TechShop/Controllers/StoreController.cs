@@ -102,6 +102,7 @@ namespace TechShop.Controllers
                 .Include(v => v.Lignes)
                 .Include(v => v.Livreur)
                 .Include(v => v.Facture)
+                .Include(v => v.Utilisateur)   // adresse de livraison du client
                 .FirstOrDefaultAsync(v => v.VenteID == id && v.UtilisateurID == userId && v.IsActive);
 
             if (commande == null) return NotFound();

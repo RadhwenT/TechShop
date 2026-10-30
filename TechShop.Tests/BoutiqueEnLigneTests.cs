@@ -354,7 +354,8 @@ public class BoutiqueEnLigneTests(BaseDeDonnees bdd)
         Assert.All(Assert.IsAssignableFrom<IEnumerable<Vente>>(mesCommandes.Model), v => Assert.Equal(bob.Id, v.UtilisateurID));
 
         var boutiqueAlice = new Requete().Connecte(alice);
-        Assert.IsType<ViewResult>(await boutiqueAlice.Pour(new StoreController(db2, bdd.Configuration)).MaCommandeDetails(commandeAlice));
+        var detail = Assert.IsType<ViewResult>(await boutiqueAlice.Pour(new StoreController(db2, bdd.Configuration)).MaCommandeDetails(commandeAlice));
+        Assert.Equal(alice.Adresse, Assert.IsType<Vente>(detail.Model).Utilisateur!.Adresse);   // adresse de livraison affichée
         Assert.IsType<ViewResult>(await boutiqueAlice.Pour(new StoreController(db2, bdd.Configuration)).AfficherFacture(factureAlice));
     }
 }

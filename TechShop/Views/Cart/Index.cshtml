@@ -11,14 +11,6 @@
     </div>
 </div>
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success">@TempData["Success"]</div>
-}
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">@TempData["Error"]</div>
-}
 @if (ViewBag.PrixModifies is List<string> prixModifies && prixModifies.Any())
 {
     <div class="alert alert-warning">
@@ -117,7 +109,7 @@
                     <hr />
 
                     <div class="d-flex justify-content-between mb-4">
-                        <span class="fw-bold fs-5">Total HT :</span>
+                        <span class="fw-bold fs-5">Total TTC :</span>
                         <span class="fw-bold fs-4 text-primary">@Model.Sum(x => x.SousTotal).ToString("N2") DT</span>
                     </div>
 

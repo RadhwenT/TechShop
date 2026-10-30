@@ -17,15 +17,6 @@
     <h2 class="mb-0">Liste des Ventes</h2>
 </div>
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success">✅ @TempData["Success"]</div>
-}
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">❌ @TempData["Error"]</div>
-}
-
 <form method="get" asp-action="Index" id="filterForm">
     <div class="card p-3 mb-3">
         <div class="row g-2 align-items-end">
