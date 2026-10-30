@@ -2,7 +2,10 @@ using TechShop.Models;
 
 namespace TechShop.Tests;
 
-/// <summary>Règles de facturation (TVA 19 %, timbre 1 DT, numérotation), sans base de données.</summary>
+/// <summary>
+/// Règles de facturation, sans base de données : prix du catalogue TTC (TVA 19 % incluse),
+/// HT = TTC / 1,19 arrondi au millime, TVA = TTC - HT, timbre fiscal 1 DT, numérotation.
+/// </summary>
 public class CalculFactureTests
 {
     private static VenteLigne Ligne(decimal prix, int quantite) => new() { PrixUnitaire = prix, Quantite = quantite };
@@ -10,27 +13,35 @@ public class CalculFactureTests
     [Fact]
     public void CalculStandard()
     {
-        var m = CalculFacture.Calculer([Ligne(1000m, 1)]);
+        // 1 190 DT TTC = 1 000 DT HT + 190 DT de TVA ; net à payer = 1 190 + 1 DT de timbre
+        var m = CalculFacture.Calculer([Ligne(1190m, 1)]);
         Assert.Equal(new MontantsFacture(1000m, 190m, 1m, 1191m), m);
     }
 
     [Fact]
     public void PlusieursLignesEtArrondiAuMillime()
     {
-        // HT = 2 x 1250 + 3 x 19.99 = 2559.97 ; TVA = 486.3943 -> 486.394
+        // TTC = 2 x 1250 + 3 x 19.99 = 2559.97 ; HT = 2559.97 / 1.19 = 2151.2352... -> 2151.235
         var m = CalculFacture.Calculer([Ligne(1250m, 2), Ligne(19.99m, 3)]);
-        Assert.Equal(2559.97m, m.HT);
-        Assert.Equal(486.394m, m.TVA);
+        Assert.Equal(2151.235m, m.HT);
+        Assert.Equal(408.735m, m.TVA);
         Assert.Equal(1m, m.Timbre);
-        Assert.Equal(3047.364m, m.TTC);
+        Assert.Equal(2560.97m, m.TTC);
     }
 
-    [Fact]
-    public void ArrondiBancaireSurLeDemiMillime()
+    [Theory]
+    [InlineData(10)]
+    [InlineData(100)]
+    [InlineData(19.99)]
+    [InlineData(2559.97)]
+    [InlineData(123456.78)]
+    public void HtPlusTvaRedonneToujoursLePrixTtc(double prix)
     {
-        // 0.05 x 0.19 = 0.0095 -> arrondi au pair le plus proche : 0.010 ; 0.15 x 0.19 = 0.0285 -> 0.028
-        Assert.Equal(0.010m, CalculFacture.Calculer([Ligne(0.05m, 1)]).TVA);
-        Assert.Equal(0.028m, CalculFacture.Calculer([Ligne(0.15m, 1)]).TVA);
+        decimal ttc = (decimal)prix;
+        var m = CalculFacture.Calculer([Ligne(ttc, 1)]);
+        Assert.Equal(ttc, m.HT + m.TVA);          // aucun millime perdu par l'arrondi
+        Assert.Equal(ttc + 1m, m.TTC);
+        Assert.Equal(m.HT, Math.Round(m.HT, 3));  // HT au millime
     }
 
     [Fact]
@@ -38,6 +49,7 @@ public class CalculFactureTests
     {
         var m = CalculFacture.Calculer([]);
         Assert.Equal(0m, m.HT);
+        Assert.Equal(0m, m.TVA);
         Assert.Equal(1m, m.TTC);
     }
 
