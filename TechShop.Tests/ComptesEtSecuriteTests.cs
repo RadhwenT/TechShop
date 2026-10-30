@@ -1,6 +1,10 @@
 using System.Reflection;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TechShop.Controllers;
@@ -126,6 +130,60 @@ public class ComptesEtSecuriteTests(BaseDeDonnees bdd)
             await admin.Pour(new ClientController(db)).ToggleBlock(client.Id);   // débloqué
         using (var db = bdd.NouveauContexte())
             Assert.IsType<RedirectToActionResult>(await r.Pour(new AccountController(db)).Login(client.Email, "client-pass"));
+    }
+
+    /// <summary>Simule la vérification du cookie faite par ASP.NET Core au début de chaque requête.</summary>
+    private async Task<(CookieValidatePrincipalContext contexte, FauxAuthentification auth)> VerifierCookie(Utilisateur u, string? role = null)
+    {
+        var auth = new FauxAuthentification();
+        var services = new ServiceCollection()
+            .AddSingleton<IAuthenticationService>(auth)
+            .AddScoped(_ => bdd.NouveauContexte())
+            .BuildServiceProvider();
+        var principal = new Requete().Connecte(new Utilisateur { Id = u.Id, Nom = u.Nom, Email = u.Email, Role = role ?? u.Role }).Utilisateur;
+        var contexte = new CookieValidatePrincipalContext(
+            new DefaultHttpContext { RequestServices = services },
+            new AuthenticationScheme(CookieAuthenticationDefaults.AuthenticationScheme, null, typeof(CookieAuthenticationHandler)),
+            new CookieAuthenticationOptions(),
+            new AuthenticationTicket(principal, CookieAuthenticationDefaults.AuthenticationScheme));
+        await ControleCompte.ValiderAsync(contexte);
+        return (contexte, auth);
+    }
+
+    [Fact]
+    public async Task UnClientConnecteGardeSaSessionTantQuIlNestPasBloque()
+    {
+        var client = Donnees.Utilisateur(bdd);
+        var (contexte, auth) = await VerifierCookie(client);
+        Assert.NotNull(contexte.Principal);
+        Assert.Equal(0, auth.Deconnexions);
+    }
+
+    [Fact]
+    public async Task UnClientBloqueAlorsQuIlEstConnecteEstDeconnecteALaRequeteSuivante()
+    {
+        var client = Donnees.Utilisateur(bdd);
+        using (var db = bdd.NouveauContexte())
+            await new Requete().Connecte(Donnees.Utilisateur(bdd, "Admin")).Pour(new ClientController(db)).ToggleBlock(client.Id);
+
+        var (contexte, auth) = await VerifierCookie(client);
+        Assert.Null(contexte.Principal);          // cookie refusé
+        Assert.Equal(1, auth.Deconnexions);       // et supprimé
+    }
+
+    [Fact]
+    public async Task UnCookieDontLeRoleNeCorrespondPlusEstRefuse()
+    {
+        var client = Donnees.Utilisateur(bdd);
+        var (contexte, _) = await VerifierCookie(client, role: "Admin");
+        Assert.Null(contexte.Principal);
+    }
+
+    [Fact]
+    public async Task UnCookieDUnCompteInexistantEstRefuse()
+    {
+        var (contexte, _) = await VerifierCookie(new Utilisateur { Id = int.MaxValue, Nom = "x", Email = "x@test.tn", Role = "Client" });
+        Assert.Null(contexte.Principal);
     }
 
     [Fact]

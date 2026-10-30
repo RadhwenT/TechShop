@@ -72,6 +72,7 @@ public sealed class FauxUrlHelper(ActionContext context) : IUrlHelper
 public sealed class FauxAuthentification : IAuthenticationService
 {
     public ClaimsPrincipal? Connecte { get; private set; }
+    public int Deconnexions { get; private set; }
 
     public Task SignInAsync(HttpContext context, string? scheme, ClaimsPrincipal principal, AuthenticationProperties? properties)
     {
@@ -82,6 +83,7 @@ public sealed class FauxAuthentification : IAuthenticationService
     public Task SignOutAsync(HttpContext context, string? scheme, AuthenticationProperties? properties)
     {
         Connecte = null;
+        Deconnexions++;
         return Task.CompletedTask;
     }
 

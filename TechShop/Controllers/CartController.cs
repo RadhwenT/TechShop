@@ -26,9 +26,31 @@ namespace TechShop.Controllers
             HttpContext.Session.SetJson("Cart", cart);
         }
 
+        /// <summary>
+        /// Remet chaque ligne du panier au prix actuel du catalogue (le panier est en session et peut
+        /// dater d'avant un changement de prix) ; renvoie un message par prix modifié.
+        /// </summary>
+        private List<string> ActualiserPrix(List<CartItem> cart)
+        {
+            var changements = new List<string>();
+            foreach (var item in cart)
+            {
+                var produit = _context.Produits.Find(item.ProduitID);
+                if (produit != null && produit.Prix != item.Prix)
+                {
+                    changements.Add($"Le prix de « {item.Nom} » est passé de {item.Prix:N2} DT à {produit.Prix:N2} DT.");
+                    item.Prix = produit.Prix;
+                }
+            }
+            if (changements.Any()) SaveCart(cart);
+            return changements;
+        }
+
         public IActionResult Index()
         {
-            return View(GetCart());
+            var cart = GetCart();
+            ViewBag.PrixModifies = ActualiserPrix(cart);
+            return View(cart);
         }
 
         [HttpPost]
@@ -123,6 +145,15 @@ namespace TechShop.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
+            // La commande se fait au prix actuel : si un prix a changé depuis l'ajout au panier,
+            // le client est prévenu et doit valider à nouveau
+            var prixModifies = ActualiserPrix(cart);
+            if (prixModifies.Any())
+            {
+                TempData["Error"] = string.Join(" ", prixModifies) + " Vérifiez votre panier puis validez à nouveau la commande.";
+                return RedirectToAction("Index");
+            }
+
             // Create Vente
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -142,7 +173,11 @@ namespace TechShop.Controllers
                 foreach (var item in cart)
                 {
                     var produit = await _context.Produits.FindAsync(item.ProduitID);
-                    if (produit == null || produit.Quantite < item.Quantite)
+                    if (produit == null || !produit.IsActive)
+                    {
+                        throw new Exception($"« {item.Nom} » n'est plus disponible : retirez-le du panier.");
+                    }
+                    if (produit.Quantite < item.Quantite)
                     {
                         throw new Exception($"Stock insuffisant pour {item.Nom}.");
                     }
@@ -152,7 +187,7 @@ namespace TechShop.Controllers
                         VenteID = vente.VenteID,
                         ProduitID = produit.ProduitID,
                         Quantite = item.Quantite,
-                        PrixUnitaire = item.Prix
+                        PrixUnitaire = produit.Prix
                     };
                     _context.VenteLignes.Add(ligne);
                 }

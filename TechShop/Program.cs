@@ -23,6 +23,8 @@ namespace TechShop
                 {
                     options.LoginPath = "/Account/Login";
                     options.AccessDeniedPath = "/Account/Login";
+                    // Un client bloqué par l'administrateur est déconnecté dès sa requête suivante
+                    options.Events.OnValidatePrincipal = ControleCompte.ValiderAsync;
                 });
 
             builder.Services.AddSession(options =>

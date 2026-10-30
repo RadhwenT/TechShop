@@ -141,6 +141,80 @@ public class BoutiqueEnLigneTests(BaseDeDonnees bdd)
         Assert.False(bdd.NouveauContexte().Ventes.Any(v => v.UtilisateurID == client.Id));
     }
 
+    private void ChangerPrix(int produitId, decimal prix)
+    {
+        using var db = bdd.NouveauContexte();
+        db.Produits.Single(p => p.ProduitID == produitId).Prix = prix;
+        db.SaveChanges();
+    }
+
+    [Fact]
+    public async Task LePanierAfficheLePrixActuelEtPrevientDuChangement()
+    {
+        var a = Donnees.Produit(bdd, 2500m, 5);
+        var r = new Requete();
+        using var db = bdd.NouveauContexte();
+        await r.Pour(new CartController(db)).Add(a, 1);
+
+        ChangerPrix(a, 2800m);
+
+        using var db2 = bdd.NouveauContexte();
+        var vue = Assert.IsType<ViewResult>(r.Pour(new CartController(db2)).Index());
+        Assert.Equal(2800m, Assert.IsType<List<CartItem>>(vue.Model).Single().Prix);
+        Assert.Single((List<string>)vue.ViewData["PrixModifies"]!);
+        Assert.Equal(2800m, Panier(r).Single().Prix);
+    }
+
+    [Fact]
+    public async Task UnChangementDePrixAvantLaCommandeDemandeUneNouvelleValidation()
+    {
+        var a = Donnees.Produit(bdd, 2500m, 5);
+        var client = Donnees.Utilisateur(bdd);
+        var r = new Requete().Connecte(client);
+        using var db = bdd.NouveauContexte();
+        await r.Pour(new CartController(db)).Add(a, 1);
+
+        ChangerPrix(a, 2800m);
+
+        // 1re validation : refusée, le client est prévenu du nouveau prix
+        using (var db2 = bdd.NouveauContexte())
+        {
+            var cart = r.Pour(new CartController(db2));
+            var redirect = Assert.IsType<RedirectToActionResult>(await cart.Checkout());
+            Assert.Equal("Index", redirect.ActionName);
+            Assert.Contains("prix", cart.TempData["Error"]!.ToString());
+            Assert.Equal(2800m, Panier(r).Single().Prix);     // le panier affiche déjà le nouveau prix
+        }
+        Assert.False(bdd.NouveauContexte().Ventes.Any(v => v.UtilisateurID == client.Id));
+
+        // 2e validation : la commande est enregistrée au prix actuel
+        using (var db3 = bdd.NouveauContexte())
+            await r.Pour(new CartController(db3)).Checkout();
+        var vente = bdd.NouveauContexte().Ventes.Include(v => v.Lignes).Single(v => v.UtilisateurID == client.Id);
+        Assert.Equal(2800m, vente.Lignes.Single().PrixUnitaire);
+    }
+
+    [Fact]
+    public async Task UnProduitArchiveApresAjoutAuPanierBloqueLaCommande()
+    {
+        var a = Donnees.Produit(bdd, 100m, 5);
+        var client = Donnees.Utilisateur(bdd);
+        var r = new Requete().Connecte(client);
+        using var db = bdd.NouveauContexte();
+        await r.Pour(new CartController(db)).Add(a, 1);
+        using (var db2 = bdd.NouveauContexte())
+        {
+            db2.Produits.Single(p => p.ProduitID == a).IsActive = false;
+            db2.SaveChanges();
+        }
+
+        using var db3 = bdd.NouveauContexte();
+        var cart = r.Pour(new CartController(db3));
+        await cart.Checkout();
+        Assert.NotNull(cart.TempData["Error"]);
+        Assert.False(bdd.NouveauContexte().Ventes.Any(v => v.UtilisateurID == client.Id));
+    }
+
     // ---------- traitement par l'administrateur ----------
 
     [Fact]

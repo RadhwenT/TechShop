@@ -11,6 +11,27 @@
     </div>
 </div>
 
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+@if (ViewBag.PrixModifies is List<string> prixModifies && prixModifies.Any())
+{
+    <div class="alert alert-warning">
+        <strong>Des prix ont changé depuis l'ajout au panier :</strong>
+        <ul class="mb-0">
+            @foreach (var message in prixModifies)
+            {
+                <li>@message</li>
+            }
+        </ul>
+    </div>
+}
+
 <div class="row">
     @if (!Model.Any())
     {
