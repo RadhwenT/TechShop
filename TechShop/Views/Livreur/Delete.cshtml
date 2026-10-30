@@ -1,0 +1,46 @@
+@model TechShop.Models.Livreur
+
+@{
+    ViewData["Title"] = "Supprimer Livreur";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm border-0 rounded-4 overflow-hidden mt-5">
+            <div class="bg-danger p-4 text-center text-white">
+                <i class="bi bi-exclamation-triangle display-4 mb-2"></i>
+                <h3 class="fw-bold mb-0">Confirmation de suppression</h3>
+            </div>
+            <div class="card-body p-4 text-center">
+                <p class="fs-5 mb-4">Êtes-vous sûr de vouloir supprimer le livreur <strong>@Model.NomComplet</strong> ?</p>
+                
+                <div class="bg-light p-3 rounded-3 mb-4 text-start">
+                    <div class="row small text-muted mb-2">
+                        <div class="col-4 fw-bold text-uppercase">Nom :</div>
+                        <div class="col-8 text-dark">@Model.Nom</div>
+                    </div>
+                    <div class="row small text-muted mb-2">
+                        <div class="col-4 fw-bold text-uppercase">Prénom :</div>
+                        <div class="col-8 text-dark">@Model.Prenom</div>
+                    </div>
+                    <div class="row small text-muted">
+                        <div class="col-4 fw-bold text-uppercase">Téléphone :</div>
+                        <div class="col-8 text-dark">@Model.Telephone</div>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning border-0 small mb-4">
+                    <i class="bi bi-info-circle me-1"></i> Cette action va archiver le livreur sans supprimer ses données historiques.
+                </div>
+
+                <form asp-action="Delete">
+                    <input type="hidden" asp-for="Id" />
+                    <div class="d-flex justify-content-center gap-2">
+                        <button type="submit" class="btn btn-danger px-4 py-2 fw-bold">Oui, supprimer</button>
+                        <a asp-action="Index" class="btn btn-secondary px-4 py-2 fw-bold">Annuler</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

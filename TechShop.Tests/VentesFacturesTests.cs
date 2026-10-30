@@ -9,7 +9,8 @@ namespace TechShop.Tests;
 
 /// <summary>
 /// Tests de caractérisation du module Ventes / Factures : ils décrivent le comportement
-/// actuel (stock, prix figé, calcul HT / TVA / timbre / TTC, numérotation, règles client),
+/// actuel (stock, prix figé, calcul HT / TVA / timbre / TTC, numérotation, règles client)
+/// des ventes sur place,
 /// pour que toute évolution du code soit vérifiée automatiquement.
 /// </summary>
 [Collection("Base")]
@@ -79,7 +80,8 @@ public class VentesFacturesTests(BaseDeDonnees bdd)
 
         using var db2 = bdd.NouveauContexte();
         var vente = db2.Ventes.Include(v => v.Lignes).Single(v => v.VenteID == venteId);
-        Assert.Equal(VenteStatut.EnCours, vente.Statut);
+        Assert.Equal(VenteStatut.Validee, vente.Statut);   // une vente sur place est validée d'emblée
+        Assert.Equal(TypeVente.SurPlace, vente.Type);
         Assert.Equal(1200m, vente.Lignes.Single(l => l.ProduitID == a).PrixUnitaire);
         Assert.Equal(3 * 1200m + 4 * 35.5m, vente.MontantHT);
     }
@@ -124,12 +126,11 @@ public class VentesFacturesTests(BaseDeDonnees bdd)
 
         using var db = bdd.NouveauContexte();
         var f = db.Factures.Single(x => x.VenteID == venteId);
-        decimal ht = 2 * 1250m + 3 * 19.99m;               // 2559.97
-        Assert.Equal(ht, f.MontantHT);
-        Assert.Equal(Math.Round(ht * 0.19m, 3), f.MontantTVA); // 486.394
+        // Prix TTC : total 2 x 1250 + 3 x 19.99 = 2559.97 TTC
+        Assert.Equal(2151.235m, f.MontantHT);              // 2559.97 / 1.19 au millime
+        Assert.Equal(408.735m, f.MontantTVA);              // 2559.97 - HT
         Assert.Equal(1m, f.Timbre);
-        Assert.Equal(ht + Math.Round(ht * 0.19m, 3) + 1m, f.MontantTTC);
-        Assert.Equal(VenteStatut.Facturee, db.Ventes.Single(v => v.VenteID == venteId).Statut);
+        Assert.Equal(2560.97m, f.MontantTTC);              // total TTC + timbre
     }
 
     [Fact]
@@ -191,6 +192,11 @@ public class VentesFacturesTests(BaseDeDonnees bdd)
         var result = await Ventes(db2).Facturer(venteId);
         var redirect = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal("Details", redirect.ActionName);
+
+        // même en envoyant directement le formulaire de facturation
+        var envoi = await Facturer(venteId);
+        Assert.Equal("Details", Assert.IsType<RedirectToActionResult>(envoi).ActionName);
+        Assert.False(bdd.NouveauContexte().Factures.Any(f => f.VenteID == venteId));
     }
 
     // ---------- stock depuis la fiche produit ----------

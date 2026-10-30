@@ -88,6 +88,37 @@ namespace TechShop.Migrations
                     b.ToTable("Factures");
                 });
 
+            modelBuilder.Entity("TechShop.Models.Livreur", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Nom")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Prenom")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Telephone")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Livreurs");
+                });
+
             modelBuilder.Entity("TechShop.Models.Produit", b =>
                 {
                     b.Property<int>("ProduitID")
@@ -135,6 +166,52 @@ namespace TechShop.Migrations
                     b.ToTable("Produits");
                 });
 
+            modelBuilder.Entity("TechShop.Models.Utilisateur", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Adresse")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<bool>("IsBlocked")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MotDePasse")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Nom")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Telephone")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("Utilisateurs");
+                });
+
             modelBuilder.Entity("TechShop.Models.Vente", b =>
                 {
                     b.Property<int>("VenteID")
@@ -149,10 +226,23 @@ namespace TechShop.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("LivreurID")
+                        .HasColumnType("int");
+
                     b.Property<int>("Statut")
                         .HasColumnType("int");
 
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UtilisateurID")
+                        .HasColumnType("int");
+
                     b.HasKey("VenteID");
+
+                    b.HasIndex("LivreurID");
+
+                    b.HasIndex("UtilisateurID");
 
                     b.ToTable("Ventes");
                 });
@@ -193,6 +283,21 @@ namespace TechShop.Migrations
                         .IsRequired();
 
                     b.Navigation("Vente");
+                });
+
+            modelBuilder.Entity("TechShop.Models.Vente", b =>
+                {
+                    b.HasOne("TechShop.Models.Livreur", "Livreur")
+                        .WithMany()
+                        .HasForeignKey("LivreurID");
+
+                    b.HasOne("TechShop.Models.Utilisateur", "Utilisateur")
+                        .WithMany()
+                        .HasForeignKey("UtilisateurID");
+
+                    b.Navigation("Livreur");
+
+                    b.Navigation("Utilisateur");
                 });
 
             modelBuilder.Entity("TechShop.Models.VenteLigne", b =>

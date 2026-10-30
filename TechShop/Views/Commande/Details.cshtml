@@ -1,0 +1,199 @@
+@model TechShop.Models.Vente
+
+@{
+    ViewData["Title"] = $"Commande #{Model.VenteID}";
+}
+
+<div class="d-flex align-items-center mb-4">
+    <a asp-action="Index" class="btn btn-secondary">Retour</a>
+    <h2 class="fw-bold m-0">Détails Commande #@Model.VenteID</h2>
+    <div class="ms-auto">
+        @{
+            string badgeClass = Model.Statut switch
+            {
+                TechShop.Models.VenteStatut.EnAttente => "bg-warning text-dark",
+                TechShop.Models.VenteStatut.Validee => "bg-info text-white",
+                TechShop.Models.VenteStatut.EnExpedition => "bg-primary",
+                TechShop.Models.VenteStatut.Livree => "bg-success",
+                TechShop.Models.VenteStatut.Annulee => "bg-danger",
+                _ => "bg-secondary"
+            };
+        }
+        <span class="badge @badgeClass px-4 py-2 fs-6">@Model.Statut</span>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Produits -->
+        <div class="card shadow-sm border-0 rounded-3 mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="mb-0 fw-bold">Articles de la commande</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Produit</th>
+                                <th>Prix</th>
+                                <th class="text-center">Qté</th>
+                                <th class="pe-4 text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Lignes)
+                            {
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center py-2">
+                                            @if (!string.IsNullOrEmpty(item.Produit?.Image))
+                                            {
+                                                <img src="@item.Produit.Image" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; margin-right: 12px;" />
+                                            }
+                                            <div>
+                                                <div class="fw-bold">@item.Produit?.Nom</div>
+                                                <small class="text-muted">Réf: @item.Produit?.Reference</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>@item.PrixUnitaire.ToString("N2") DT</td>
+                                    <td class="text-center">@item.Quantite</td>
+                                    <td class="pe-4 text-end fw-bold text-primary">@item.SousTotal.ToString("N2") DT</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <td colspan="3" class="text-end ps-4 fw-bold py-3 fs-5">TOTAL</td>
+                                <td class="pe-4 text-end fw-bold py-3 fs-5 text-primary">@Model.MontantHT.ToString("N2") DT</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Infos Client & Livraison -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0 rounded-3 mb-4 h-100">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h5 class="mb-0 fw-bold"><i class="bi bi-person me-2"></i> Client</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-1">@Model.Utilisateur?.Nom</h6>
+                        <p class="text-muted mb-3">@Model.Utilisateur?.Email</p>
+                        
+                        <div class="small text-muted text-uppercase fw-bold mb-1">Coordonnées :</div>
+                        <div class="mb-1"><i class="bi bi-telephone me-2"></i> @(Model.Utilisateur?.Telephone ?? "N/A")</div>
+                        <div class="mb-3"><i class="bi bi-geo-alt me-2"></i> @(Model.Utilisateur?.Adresse ?? "N/A")</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0 rounded-3 mb-4 h-100">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h5 class="mb-0 fw-bold"><i class="bi bi-truck me-2"></i> Livraison</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.Livreur != null)
+                        {
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px;">
+                                    <i class="bi bi-person-badge fs-4"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-0">@Model.Livreur.NomComplet</h6>
+                                    <small class="text-muted">@Model.Livreur.Telephone</small>
+                                </div>
+                            </div>
+                            <div class="alert alert-info py-2 small mb-0">
+                                <i class="bi bi-info-circle me-1"></i> Livreur affecté.
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4">
+                                <i class="bi bi-truck text-muted display-4 mb-2"></i>
+                                <p class="text-muted mb-0">Aucun livreur affecté.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Actions -->
+        <div class="card shadow-sm border-0 rounded-3 mb-4 sticky-top" style="top: 2rem;">
+            <div class="card-header bg-white border-bottom py-3 text-center">
+                <h5 class="mb-0 fw-bold">Actions de Gestion</h5>
+            </div>
+            <div class="card-body p-4">
+                @if (Model.Statut == TechShop.Models.VenteStatut.EnAttente)
+                {
+                    <form asp-action="Validate" method="post" class="mb-3">
+                        <input type="hidden" name="id" value="@Model.VenteID" />
+                        <label class="form-label fw-bold">Affecter un livreur</label>
+                        <select name="livreurId" class="form-select mb-3" required>
+                            <option value="">— Choisir un livreur —</option>
+                            @foreach (var l in ViewBag.Livreurs as List<TechShop.Models.Livreur>)
+                            {
+                                <option value="@l.Id">@l.NomComplet (@l.Telephone)</option>
+                            }
+                        </select>
+                        <button type="submit" class="btn btn-success w-100 py-3 fw-bold">
+                            <i class="bi bi-check-circle me-2"></i> Valider la commande
+                        </button>
+                    </form>
+                }
+                
+                @if (Model.Statut == TechShop.Models.VenteStatut.Validee)
+                {
+                    <form asp-action="Ship" method="post" class="mb-3">
+                        <input type="hidden" name="id" value="@Model.VenteID" />
+                        <button type="submit" class="btn btn-primary w-100 py-3 fw-bold">
+                            <i class="bi bi-truck me-2"></i> Déclencher la livraison
+                        </button>
+                    </form>
+                }
+
+                @if (Model.Statut == TechShop.Models.VenteStatut.EnExpedition)
+                {
+                    <form asp-action="Complete" method="post" class="mb-3">
+                        <input type="hidden" name="id" value="@Model.VenteID" />
+                        <button type="submit" class="btn btn-success w-100 py-3 fw-bold">
+                            <i class="bi bi-box-seam me-2"></i> Marquer comme livrée
+                        </button>
+                    </form>
+                }
+
+                @if (Model.Facture != null)
+                {
+                    <a asp-controller="Vente" asp-action="AfficherFacture" asp-route-id="@Model.Facture.FactureID" class="btn btn-outline-info w-100 py-3 fw-bold mb-3">
+                        <i class="bi bi-receipt me-2"></i> Voir la Facture
+                    </a>
+                }
+                else if (Model.Statut != TechShop.Models.VenteStatut.Annulee && Model.Statut != TechShop.Models.VenteStatut.EnAttente)
+                {
+                    <a asp-controller="Vente" asp-action="Facturer" asp-route-id="@Model.VenteID" class="btn btn-outline-info w-100 py-3 fw-bold mb-3">
+                        <i class="bi bi-receipt me-2"></i> Générer Facture
+                    </a>
+                }
+
+                @if (Model.Statut == TechShop.Models.VenteStatut.EnAttente)
+                {
+                    <hr />
+                    <form asp-action="Cancel" method="post" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler cette commande ?');">
+                        <input type="hidden" name="id" value="@Model.VenteID" />
+                        <button type="submit" class="btn btn-outline-danger w-100 py-2 btn-sm">
+                            <i class="ti ti-x me-1"></i> Annuler la commande
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+</div>

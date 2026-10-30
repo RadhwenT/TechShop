@@ -13,7 +13,6 @@
             <a asp-action="Index" class="btn btn-secondary ms-auto">Retour</a>
         </div>
 
-        <!-- Récapitulatif des produits -->
         @if (vente != null)
         {
             <div class="card p-3 mb-4">
@@ -40,39 +39,42 @@
                     </tbody>
                     <tfoot>
                         @{
-                            decimal ht = vente.Lignes.Sum(l => l.SousTotal);
-                            decimal tva = Math.Round(ht * 0.19m, 3);
-                            decimal ttc = ht + tva + 1m;
+                            decimal ttcArticles = vente.Lignes.Sum(l => l.SousTotal);
+                            decimal ht = Math.Round(ttcArticles / (1 + TechShop.Models.Facture.TauxTVA), 3);
+                            decimal tva = ttcArticles - ht;
+                            decimal totalFinal = ttcArticles + TechShop.Models.Facture.MontantTimbre;
                         }
-                        <tr class="table-light fw-bold">
-                            <td colspan="3" class="text-end">Montant HT</td>
+                        <tr class="table-light">
+                            <td colspan="3" class="text-end text-muted">Total TTC (Articles)</td>
+                            <td class="text-end">@ttcArticles.ToString("N3") DT</td>
+                        </tr>
+                        <tr class="table-light small text-muted">
+                            <td colspan="3" class="text-end">Dont Montant HT</td>
                             <td class="text-end">@ht.ToString("N3") DT</td>
                         </tr>
-                        <tr class="table-light">
-                            <td colspan="3" class="text-end text-muted">TVA (19 %)</td>
+                        <tr class="table-light small text-muted">
+                            <td colspan="3" class="text-end">Dont TVA (19 %)</td>
                             <td class="text-end">@tva.ToString("N3") DT</td>
                         </tr>
-                        <tr class="table-light">
-                            <td colspan="3" class="text-end text-muted">Timbre fiscal</td>
-                            <td class="text-end">1,000 DT</td>
+                        <tr class="table-light small text-muted">
+                            <td colspan="3" class="text-end">Timbre fiscal</td>
+                            <td class="text-end">@TechShop.Models.Facture.MontantTimbre.ToString("N3") DT</td>
                         </tr>
                         <tr class="table-success fw-bold">
-                            <td colspan="3" class="text-end">Montant TTC</td>
-                            <td class="text-end text-success">@ttc.ToString("N3") DT</td>
+                            <td colspan="3" class="text-end">NET À PAYER (TTC)</td>
+                            <td class="text-end text-success">@totalFinal.ToString("N3") DT</td>
                         </tr>
                     </tfoot>
                 </table>
             </div>
         }
 
-        <!-- Formulaire client -->
         <div class="card p-4">
             <h5 class="mb-3">👤 Informations client</h5>
             <form asp-action="Facturer" method="post">
                 @Html.AntiForgeryToken()
                 <input type="hidden" asp-for="VenteID" />
 
-                <!-- Type de client -->
                 <div class="mb-3">
                     <label class="form-label fw-bold">Type de client *</label>
                     <div class="d-flex gap-4">
@@ -101,33 +103,28 @@
                 </div>
 
                 <div class="row g-3">
-                    <!-- Nom / Raison sociale -->
                     <div class="col-md-6">
                         <label asp-for="NomClient" id="lblNomClient" class="form-label">Nom & Prénom *</label>
                         <input asp-for="NomClient" class="form-control" placeholder="ex: Ahmed Ben Ali" />
                         <span asp-validation-for="NomClient" class="text-danger small"></span>
                     </div>
 
-                    <!-- Matricule fiscal (morale seulement) -->
                     <div class="col-md-6" id="mfBlock" style="display:none;">
                         <label asp-for="MatriculeFiscal" class="form-label">Matricule fiscal *</label>
                         <input asp-for="MatriculeFiscal" class="form-control" placeholder="ex: 0000000/A/M/000" />
                         <span asp-validation-for="MatriculeFiscal" class="text-danger small"></span>
                     </div>
 
-                    <!-- Adresse -->
                     <div class="col-md-6">
                         <label asp-for="Adresse" class="form-label">Adresse</label>
                         <input asp-for="Adresse" class="form-control" placeholder="ex: 12 Rue de la Liberté, Tunis" />
                     </div>
 
-                    <!-- Téléphone -->
                     <div class="col-md-3">
                         <label asp-for="Telephone" class="form-label">Téléphone</label>
                         <input asp-for="Telephone" class="form-control" placeholder="ex: +216 98 000 000" />
                     </div>
 
-                    <!-- Email -->
                     <div class="col-md-3">
                         <label asp-for="Email" class="form-label">Email</label>
                         <input asp-for="Email" class="form-control" type="email" placeholder="ex: client@mail.com" />
@@ -152,7 +149,6 @@
             document.getElementById('mfBlock').style.display = isMorale ? '' : 'none';
             document.getElementById('lblNomClient').textContent = isMorale ? 'Raison sociale *' : 'Nom & Prénom *';
         }
-        // Initialiser selon la valeur postback
         toggleClientType();
     </script>
 }

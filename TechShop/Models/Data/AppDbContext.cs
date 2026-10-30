@@ -11,26 +11,28 @@ namespace TechShop.Data
         }
 
         public DbSet<Produit> Produits { get; set; }
+        public DbSet<Utilisateur> Utilisateurs { get; set; }
+        public DbSet<Livreur> Livreurs { get; set; }
 
-        // ── Module Vente ─────────────────────────────────────────────────────
         public DbSet<Vente> Ventes { get; set; }
         public DbSet<VenteLigne> VenteLignes { get; set; }
         public DbSet<Facture> Factures { get; set; }
-        // Retour supprimé
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Une vente ne peut avoir qu'une seule facture (relation 1-1)
+            modelBuilder.Entity<Utilisateur>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
+
             modelBuilder.Entity<Facture>()
                 .HasIndex(f => f.VenteID)
                 .IsUnique();
 
-            // Numéro de facture unique
             modelBuilder.Entity<Facture>()
                 .HasIndex(f => f.NumeroFacture)
                 .IsUnique();
         }
     }
-}
+}

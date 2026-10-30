@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+    @inject TechShop.Data.AppDbContext _context
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - TechShop</title>
@@ -11,6 +12,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@tabler/icons-webfont@latest/tabler-icons.min.css" />
 </head>
 <body>
+    @{
+        var pendingOrdersCount = _context.Ventes.Count(v => v.Type == TechShop.Models.TypeVente.EnLigne && v.Statut == TechShop.Models.VenteStatut.EnAttente && v.IsActive);
+    }
 
     <div class="app-shell">
 
@@ -29,6 +33,12 @@
             <nav class="sidebar-nav">
                 <p class="nav-section-label">Catalogue</p>
                 <ul>
+                    <li>
+                        <a asp-controller="Home" asp-action="Index" class="nav-link-item">
+                            <i class="ti ti-layout-dashboard"></i>
+                            <span>Tableau de bord</span>
+                        </a>
+                    </li>
                     <li>
                         <a asp-controller="Produit" asp-action="Index" class="nav-link-item">
                             <i class="ti ti-device-laptop"></i>
@@ -57,9 +67,46 @@
                             <span>Ventes</span>
                         </a>
                     </li>
+                    <li>
+                        <a asp-controller="Commande" asp-action="Index" class="nav-link-item">
+                            <i class="ti ti-shopping-cart"></i>
+                            <span>Commandes</span>
+                            @if (pendingOrdersCount > 0)
+                            {
+                                <span class="badge bg-danger ms-auto">@pendingOrdersCount</span>
+                            }
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Client" asp-action="Index" class="nav-link-item">
+                            <i class="ti ti-users"></i>
+                            <span>Clients</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Livreur" asp-action="Index" class="nav-link-item">
+                            <i class="ti ti-truck-delivery"></i>
+                            <span>Livreurs</span>
+                        </a>
+                    </li>
                     
                 </ul>
 
+                <p class="nav-section-label">Compte</p>
+                <ul>
+                    <li>
+                        <a asp-controller="Account" asp-action="Manage" class="nav-link-item">
+                            <i class="ti ti-user-cog"></i>
+                            <span>Mon Compte</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Account" asp-action="Logout" class="nav-link-item text-danger">
+                            <i class="ti ti-logout text-danger"></i>
+                            <span class="text-danger">Déconnexion</span>
+                        </a>
+                    </li>
+                </ul>
             </nav>
 
             <!-- Footer utilisateur -->
@@ -85,20 +132,14 @@
                     </button>
                 </div>
                 <div class="topbar-right">
-                    <div class="topbar-icon" title="Notifications">
-                        <i class="ti ti-bell"></i>
-                        <span class="notif-dot"></span>
-                    </div>
-                    <div class="topbar-icon" title="Aide">
-                        <i class="ti ti-help-circle"></i>
-                    </div>
-                    <div class="topbar-divider"></div>
+                    
                     <div class="topbar-brand">TechShop</div>
                 </div>
             </header>
 
             <!-- Page body -->
             <main class="page-content">
+                <partial name="_Messages" />
                 @RenderBody()
             </main>
 

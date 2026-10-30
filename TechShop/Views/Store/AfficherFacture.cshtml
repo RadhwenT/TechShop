@@ -1,0 +1,106 @@
+@model TechShop.Models.Facture
+
+@{
+    ViewData["Title"] = $"Ma Facture {Model.NumeroFacture}";
+    Layout = "_StoreLayout";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-lg-9">
+
+        <!-- Barre d'actions (hors impression) -->
+        <div class="d-flex gap-2 mb-3 no-print">
+            <a asp-action="MaCommandeDetails" asp-route-id="@Model.VenteID" class="btn btn-light rounded-pill"><i class="ti ti-arrow-left"></i> Retour aux détails</a>
+            <button onclick="window.print()" class="btn btn-primary rounded-pill ms-auto"><i class="ti ti-printer"></i> Imprimer / PDF</button>
+        </div>
+
+        <!-- ══════════════ ZONE FACTURE ══════════════ -->
+        <div class="card shadow border-0 rounded-4 p-4" id="factureZone">
+
+            <div class="row mb-4">
+                <div class="col-6">
+                    <h3 class="fw-bold text-primary">TechShop</h3>
+                    <div class="text-muted small">Matériel informatique haut de gamme</div>
+                    <div class="text-muted small">Tunis, Tunisie</div>
+                </div>
+                <div class="col-6 text-end">
+                    <h4 class="fw-bold">FACTURE</h4>
+                    <div class="text-muted">N° <strong>@Model.NumeroFacture</strong></div>
+                    <div class="text-muted small">Date : @Model.DateFacture.ToString("dd/MM/yyyy")</div>
+                </div>
+            </div>
+
+            <hr />
+
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h6 class="text-muted text-uppercase small fw-bold mb-3">Facturé à :</h6>
+                    <div class="fw-bold fs-5">@Model.NomClient</div>
+                    <div class="text-muted">@Model.Adresse</div>
+                    @if (!string.IsNullOrEmpty(Model.Telephone)) { <div class="text-muted small">Tél : @Model.Telephone</div> }
+                    @if (!string.IsNullOrEmpty(Model.Email)) { <div class="text-muted small">@Model.Email</div> }
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Désignation</th>
+                            <th class="text-center">Qté</th>
+                            <th class="text-end">Prix unit. TTC</th>
+                            <th class="text-end">Total TTC</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var l in Model.Vente!.Lignes)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-bold">@l.Produit?.Nom</div>
+                                    <small class="text-muted">Réf: @l.Produit?.Reference</small>
+                                </td>
+                                <td class="text-center fw-bold">@l.Quantite</td>
+                                <td class="text-end">@l.PrixUnitaire.ToString("N3") DT</td>
+                                <td class="text-end fw-bold">@l.SousTotal.ToString("N3") DT</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot class="table-light">
+                        <tr>
+                            <td colspan="3" class="text-end fw-bold">Montant HT</td>
+                            <td class="text-end fw-bold">@Model.MontantHT.ToString("N3") DT</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="text-end text-muted small">TVA 19 %</td>
+                            <td class="text-end small">@Model.MontantTVA.ToString("N3") DT</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="text-end text-muted small">Timbre fiscal</td>
+                            <td class="text-end small">@Model.Timbre.ToString("N3") DT</td>
+                        </tr>
+                        <tr class="table-info fs-5">
+                            <td colspan="3" class="text-end fw-bold">TOTAL TTC</td>
+                            <td class="text-end fw-bold text-primary">@Model.MontantTTC.ToString("N3") DT</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="mt-5 text-center text-muted small">
+                <p>Merci pour votre achat sur TechShop !</p>
+                <div class="fw-bold">www.techshop.tn</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @@media print {
+        .no-print { display: none !important; }
+        .navbar, .footer, .btn-group, .sidebar-toggle { display: none !important; }
+        body { background: white !important; }
+        .card { border: none !important; box-shadow: none !important; }
+        .main-content { padding: 0 !important; margin: 0 !important; }
+    }
+</style>

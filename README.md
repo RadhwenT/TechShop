@@ -1,6 +1,9 @@
 # TechShop — Gestion de boutique de matériel informatique
 
-Application web **ASP.NET Core MVC (.NET 10)** de gestion d'un magasin de matériel tech : catalogue de produits, stock, ventes et facturation conforme aux règles tunisiennes (TVA 19 % et timbre fiscal).
+Application web **ASP.NET Core MVC (.NET 10)** pour un magasin de matériel informatique, en deux parties :
+
+- une **boutique en ligne** pour les clients : catalogue, panier, commande, suivi des commandes et factures ;
+- un **back-office** pour l'administrateur : produits et stock, ventes en magasin, traitement des commandes en ligne avec livreurs, clients, et facturation conforme aux règles tunisiennes (TVA 19 % et timbre fiscal).
 
 > Projet réalisé en 2e année de Licence Génie Logiciel et Systèmes d'Information — Institut International de Technologie (IIT, Sfax).
 
@@ -10,23 +13,49 @@ Application web **ASP.NET Core MVC (.NET 10)** de gestion d'un magasin de matér
 
 ## Aperçu
 
-![Facture générée : client moral, TVA 19 %, timbre fiscal et total TTC](docs/captures/facture-totaux.jpg)
+### Boutique en ligne (client)
 
-| Catalogue des produits | Fiche produit |
+| Catalogue | Fiche produit |
 | --- | --- |
-| ![Liste des produits](docs/captures/produits.jpg) | ![Fiche produit](docs/captures/produit-details.jpg) |
-| **Ventes et statut de facturation** | **En-tête de facture** |
-| ![Liste des ventes](docs/captures/ventes.jpg) | ![Facture](docs/captures/facture.jpg) |
+| ![Catalogue de la boutique](docs/captures/boutique.jpg) | ![Fiche produit](docs/captures/produit.jpg) |
+| **Panier (prix TTC)** | **Suivi d'une commande livrée** |
+| ![Panier](docs/captures/panier.jpg) | ![Détail d'une commande côté client](docs/captures/commande-client.jpg) |
+
+### Back-office (administrateur)
+
+![Tableau de bord](docs/captures/tableau-de-bord.jpg)
+
+| Commandes en ligne | Validation d'une commande (affectation d'un livreur) |
+| --- | --- |
+| ![Commandes en ligne](docs/captures/commandes.jpg) | ![Détail d'une commande](docs/captures/commande-admin.jpg) |
+| **Facture : HT déduit du prix TTC, TVA 19 %, timbre fiscal** | **Produits et stock** |
+| ![Facture](docs/captures/facture.jpg) | ![Liste des produits](docs/captures/produits.jpg) |
+
+*Captures réalisées avec des données de démonstration fictives.*
 
 ## Fonctionnalités
 
+### Boutique en ligne (clients)
+
 | Module | Fonctionnalités |
 | --- | --- |
+| **Catalogue** | Page d'accueil publique, recherche et filtres (marque, catégorie), fiche produit avec disponibilité |
+| **Panier** | Panier en session (ajout, modification des quantités, retrait), limité au stock disponible, toujours au prix actuel (le client est prévenu si un prix change avant la commande) |
+| **Compte client** | Inscription, connexion, modification du profil et du mot de passe |
+| **Commandes** | Commande en ligne, suivi du statut (en attente, validée, en cours de livraison, livrée, annulée), livreur affecté, consultation de ses factures |
+
+### Back-office (administrateur)
+
+| Module | Fonctionnalités |
+| --- | --- |
+| **Tableau de bord** | Chiffre d'affaires, ventes en magasin et commandes en ligne, clients, alertes de stock, meilleures ventes, graphique des ventes et répartition des commandes par statut |
+| **Commandes en ligne** | Validation avec affectation d'un livreur (le stock est retiré à ce moment), expédition, livraison, annulation d'une commande en attente |
+| **Clients / Livreurs** | Liste et fiche client avec historique, blocage d'un compte ; gestion des livreurs avec archive et restauration |
 | **Produits** | Catalogue avec recherche et filtres (marque, catégorie), fiche détaillée, upload d'image, référence unique, suppression logique et restauration |
-| **Stock** | Entrées et sorties de stock par produit, contrôle du stock insuffisant |
+| **Stock** | Entrées et sorties de stock par produit, contrôle du stock insuffisant, alerte des produits presque épuisés |
 | **Marques / Catégories** | CRUD complet, recherche, contrôle des doublons, corbeille avec restauration |
-| **Ventes** | Création d'une vente multi-produits avec décrément automatique du stock, prix figé au moment de la vente, filtres par date (année / mois / jour) et par statut |
-| **Facturation** | Facture liée à une vente (relation 1-1), numérotation automatique `F-AAAA-NNN`, client physique ou moral (matricule fiscal obligatoire), calcul HT, TVA 19 %, timbre 1 DT et TTC, affichage de la facture |
+| **Ventes en magasin** | Création d'une vente multi-produits avec décrément automatique du stock, prix figé au moment de la vente, filtres par date (année / mois / jour), statut et facturation |
+| **Facturation** | Facture d'une vente en magasin ou d'une commande en ligne (pré-remplie avec les coordonnées du client), relation 1-1, numérotation automatique `F-AAAA-NNN`, client physique ou moral (matricule fiscal obligatoire). Les prix du catalogue sont TTC : HT = TTC / 1,19 au millime, TVA = TTC − HT, plus le timbre fiscal de 1 DT |
 
 ## Architecture technique
 
@@ -35,12 +64,14 @@ Application web **ASP.NET Core MVC (.NET 10)** de gestion d'un magasin de matér
   - **Entity Framework Core** (code-first, migrations) pour les produits, ventes, lignes de vente et factures ;
   - **ADO.NET** (`SqlConnection`, requêtes paramétrées) via le pattern **DAO** pour les marques et catégories.
 - **SQL Server** (LocalDB par défaut)
+- **Authentification par cookie** avec rôles `Admin` / `Client`, mots de passe hachés (`PasswordHasher`), back-office protégé par `[Authorize(Roles = "Admin")]`, protection CSRF sur tous les formulaires
+- **Panier en session** (sérialisé en JSON)
 - Règles métier dans le modèle : `Produit.AjouterStock()` / `RetirerStock()` empêchent un stock négatif ; `CalculFacture` centralise le calcul HT / TVA / timbre / TTC et la numérotation
-- Interface **Bootstrap** avec barre latérale
+- Interface **Bootstrap** : mise en page boutique pour les clients, barre latérale pour le back-office
 
 ```
 TechShop/
-├── Controllers/        # Produit, Marque, Categorie, Vente
+├── Controllers/        # boutique (Store, Cart, Account) et back-office (Home, Produit, Marque, Categorie, Vente, Commande, Client, Livreur)
 ├── Models/             # entités, CalculFacture, DAO (ADO.NET), Data (DbContext, DbInitializer), ViewModels
 ├── Migrations/         # migrations EF Core
 ├── Views/              # vues Razor
@@ -50,10 +81,15 @@ TechShop.Tests/         # tests xUnit (unitaires + intégration sur SQL Server)
 
 ## Tests
 
-**28 tests xUnit**, exécutés à chaque push par GitHub Actions :
+**74 tests xUnit**, exécutés à chaque push par GitHub Actions :
 
-- **unitaires** : règles de stock (`Produit`), calcul de facture (HT, TVA 19 % arrondie au millime, timbre, TTC) et format du numéro `F-AAAA-NNN` ;
-- **intégration sur un vrai SQL Server** lancé dans Docker par **Testcontainers** : DAO ADO.NET (recherche, doublons insensibles à la casse, suppression logique et restauration, requêtes paramétrées), ventes (décrément du stock, prix figé, refus du stock insuffisant) et factures (montants, numérotation, matricule fiscal obligatoire pour un client moral, une seule facture par vente, vente annulée non facturable).
+- **unitaires** : règles de stock (`Produit`), calcul de facture (HT déduit du prix TTC au millime, TVA, timbre, aucun millime perdu) et format du numéro `F-AAAA-NNN` ;
+- **intégration sur un vrai SQL Server** lancé dans Docker par **Testcontainers** :
+  - DAO ADO.NET (recherche, doublons insensibles à la casse, suppression logique et restauration, requêtes paramétrées) ;
+  - ventes en magasin (décrément du stock, prix figé, refus du stock insuffisant) et factures (montants, numérotation, matricule fiscal obligatoire pour un client moral, une seule facture par vente, vente annulée non facturable) ;
+  - boutique en ligne : panier limité au stock et toujours au prix actuel, commande, validation avec livreur, étapes de livraison dans l'ordre, annulation, et cloisonnement (un client ne voit ni les commandes ni les factures d'un autre) ;
+  - comptes : inscription (rôle Client imposé, mot de passe haché), connexion, client bloqué (déconnecté immédiatement même s'il était déjà connecté) ;
+- **sécurité** : le back-office est réservé au rôle Admin et toute action POST exige un jeton anti-CSRF.
 
 ```bash
 dotnet test     # Docker doit être démarré
@@ -69,7 +105,12 @@ dotnet test     # Docker doit être démarré
   - **SQL Server LocalDB**, installé avec Visual Studio ou SQL Server Express (Windows) ;
   - ou **Docker**, quel que soit le système.
 
-Au premier lancement, l'application **crée automatiquement la base** et ajoute quelques marques et catégories de démonstration.
+Au premier lancement, l'application **crée automatiquement la base**, ajoute quelques marques et catégories de démonstration et crée le compte administrateur.
+
+| Rôle | Accès |
+| --- | --- |
+| Administrateur | `admin@admin.com` / `admin123` (compte de démonstration : à changer en dehors d'un usage local) |
+| Client | créer un compte depuis la boutique (*S'inscrire*) |
 
 ### Option 1 — LocalDB (Windows)
 
@@ -80,7 +121,7 @@ cd TechShop
 dotnet run
 ```
 
-L'application s'ouvre sur http://localhost:5000.
+L'application s'ouvre sur la boutique, http://localhost:5000 ; le back-office est accessible après connexion avec le compte administrateur.
 
 ### Option 2 — SQL Server dans Docker
 

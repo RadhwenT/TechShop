@@ -4,10 +4,8 @@
 
 namespace TechShop.Migrations
 {
-    /// <inheritdoc />
-    public partial class Produits : Migration
+       public partial class Produits : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -37,7 +35,6 @@ namespace TechShop.Migrations
                 unique: true);
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(

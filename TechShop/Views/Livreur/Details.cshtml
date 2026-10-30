@@ -1,0 +1,49 @@
+@model TechShop.Models.Livreur
+
+@{
+    ViewData["Title"] = "Détails Livreur";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="d-flex align-items-center mb-4 gap-3">
+            <h2 class="fw-bold m-0">Détails du Livreur</h2>
+            <a asp-action="Index" class="btn btn-secondary">Retour</a>
+        </div>
+
+        <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+            <div class="bg-primary p-5 text-center text-white">
+                <div class="display-1 mb-3"><i class="bi bi-person-badge"></i></div>
+                <h3 class="fw-bold mb-1">@Model.NomComplet</h3>
+                <span class="badge bg-white text-primary">ID: #@Model.Id</span>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-4 text-center">
+                    <div class="col-6 border-end">
+                        <div class="text-muted small text-uppercase fw-bold mb-1">Téléphone</div>
+                        <div class="fs-5 fw-bold text-primary">@Model.Telephone</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-muted small text-uppercase fw-bold mb-1">Statut</div>
+                        <div>
+                            @if (Model.IsActive)
+                            {
+                                <span class="badge bg-success">Actif</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Archivé</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-5 pt-3 border-top d-flex justify-content-center gap-2">
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning px-4"><i class="bi bi-pencil me-1"></i> Modifier</a>
+                    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger px-4"><i class="bi bi-trash me-1"></i> Supprimer</a>
+                    <a asp-action="Index" class="btn btn-secondary px-4">Retour</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
