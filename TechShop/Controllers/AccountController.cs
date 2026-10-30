@@ -24,6 +24,7 @@ namespace TechShop.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(string email, string password)
         {
             var user = _context.Utilisateurs.FirstOrDefault(u => u.Email == email);
@@ -71,31 +72,7 @@ namespace TechShop.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Register(Utilisateur model)
-        {
-            ModelState.Remove("Role"); 
-            if (ModelState.IsValid)
-            {
-                if (_context.Utilisateurs.Any(u => u.Email == model.Email))
-                {
-                    ModelState.AddModelError("Email", "Cet email est déjà utilisé.");
-                    return View(model);
-                }
-
-                model.Role = "Client";
-                var hasher = new PasswordHasher<Utilisateur>();
-                model.MotDePasse = hasher.HashPassword(model, model.MotDePasse);
-
-                _context.Utilisateurs.Add(model);
-                await _context.SaveChangesAsync();
-
-                // Auto login after register
-                return await Login(model.Email, "original_password"); 
-            }
-            return View(model);
-        }
-
-        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> RegisterPost(Utilisateur model, string clearPassword)
         {
             ModelState.Remove("Role");
@@ -153,6 +130,7 @@ namespace TechShop.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Manage(Utilisateur model, string? newPassword)
         {
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);

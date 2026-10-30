@@ -254,6 +254,11 @@ namespace TechShop.Controllers
                 TempData["Error"] = "Cette vente est déjà facturée.";
                 return RedirectToAction(nameof(Details), new { id = vm.VenteID });
             }
+            if (vente.Statut == VenteStatut.Annulee)
+            {
+                TempData["Error"] = "Impossible de facturer une vente annulée.";
+                return RedirectToAction(nameof(Details), new { id = vm.VenteID });
+            }
 
             if (!ModelState.IsValid)
             {

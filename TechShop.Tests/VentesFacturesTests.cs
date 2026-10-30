@@ -192,6 +192,11 @@ public class VentesFacturesTests(BaseDeDonnees bdd)
         var result = await Ventes(db2).Facturer(venteId);
         var redirect = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal("Details", redirect.ActionName);
+
+        // même en envoyant directement le formulaire de facturation
+        var envoi = await Facturer(venteId);
+        Assert.Equal("Details", Assert.IsType<RedirectToActionResult>(envoi).ActionName);
+        Assert.False(bdd.NouveauContexte().Factures.Any(f => f.VenteID == venteId));
     }
 
     // ---------- stock depuis la fiche produit ----------

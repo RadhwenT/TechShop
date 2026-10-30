@@ -166,6 +166,19 @@ public class ComptesEtSecuriteTests(BaseDeDonnees bdd)
     }
 
     [Fact]
+    public void ToutesLesActionsPostSontProtegeesContreLeCsrf()
+    {
+        var nonProtegees = typeof(AccountController).Assembly.GetTypes()
+            .Where(t => typeof(Controller).IsAssignableFrom(t))
+            .SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+            .Where(m => m.GetCustomAttribute<HttpPostAttribute>() != null
+                     && m.GetCustomAttribute<ValidateAntiForgeryTokenAttribute>() == null)
+            .Select(m => $"{m.DeclaringType!.Name}.{m.Name}")
+            .ToList();
+        Assert.Empty(nonProtegees);
+    }
+
+    [Fact]
     public void LeCatalogueEtLePanierRestentPublics()
     {
         Assert.Null(typeof(StoreController).GetCustomAttribute<AuthorizeAttribute>());

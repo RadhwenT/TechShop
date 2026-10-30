@@ -81,6 +81,33 @@ public class BoutiqueEnLigneTests(BaseDeDonnees bdd)
         Assert.Equal(2, Panier(r).Single().Quantite);
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-2)]
+    public async Task UneQuantiteNulleOuNegativeEstRefusee(int quantite)
+    {
+        var a = Donnees.Produit(bdd, 100m, 5);
+        var r = new Requete();
+        using var db = bdd.NouveauContexte();
+        await r.Pour(new CartController(db)).Add(a, quantite);
+        Assert.Empty(Panier(r));
+    }
+
+    [Fact]
+    public async Task UnProduitArchiveNePeutPasEtreAjouteAuPanier()
+    {
+        var a = Donnees.Produit(bdd, 100m, 5);
+        using (var db = bdd.NouveauContexte())
+        {
+            db.Produits.Single(p => p.ProduitID == a).IsActive = false;
+            db.SaveChanges();
+        }
+        var r = new Requete();
+        using var db2 = bdd.NouveauContexte();
+        await r.Pour(new CartController(db2)).Add(a, 1);
+        Assert.Empty(Panier(r));
+    }
+
     // ---------- commande ----------
 
     [Fact]
@@ -167,6 +194,32 @@ public class BoutiqueEnLigneTests(BaseDeDonnees bdd)
         Assert.Equal(VenteStatut.EnExpedition, Commande(id).Statut);
         using (var db = bdd.NouveauContexte()) await Admin(db).Complete(id);
         Assert.Equal(VenteStatut.Livree, Commande(id).Statut);
+    }
+
+    [Fact]
+    public async Task LesEtapesDeLivraisonNePeuventPasEtreSautees()
+    {
+        var a = Donnees.Produit(bdd, 100m, 5);
+        var id = await Commander(Donnees.Utilisateur(bdd), (a, 1));
+
+        using (var db = bdd.NouveauContexte()) await Admin(db).Ship(id);       // pas encore validée
+        Assert.Equal(VenteStatut.EnAttente, Commande(id).Statut);
+        using (var db = bdd.NouveauContexte()) await Admin(db).Complete(id);   // pas encore expédiée
+        Assert.Equal(VenteStatut.EnAttente, Commande(id).Statut);
+
+        using (var db = bdd.NouveauContexte()) await Admin(db).Validate(id, Donnees.Livreur(bdd));
+        using (var db = bdd.NouveauContexte()) await Admin(db).Complete(id);   // validée mais pas expédiée
+        Assert.Equal(VenteStatut.Validee, Commande(id).Statut);
+    }
+
+    [Fact]
+    public async Task UneCommandeAnnuleeNePeutPlusEtreExpediee()
+    {
+        var a = Donnees.Produit(bdd, 100m, 5);
+        var id = await Commander(Donnees.Utilisateur(bdd), (a, 1));
+        using (var db = bdd.NouveauContexte()) await Admin(db).Cancel(id);
+        using (var db = bdd.NouveauContexte()) await Admin(db).Ship(id);
+        Assert.Equal(VenteStatut.Annulee, Commande(id).Statut);
     }
 
     [Fact]

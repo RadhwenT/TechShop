@@ -90,7 +90,7 @@ namespace TechShop.Controllers
                 foreach (var ligne in commande.Lignes)
                 {
                     var produit = await _context.Produits.FindAsync(ligne.ProduitID);
-                    if (produit == null) throw new Exception($"Produit {ligne.ProduitID} introuvable.");
+                    if (produit == null) throw new InvalidOperationException($"Produit {ligne.ProduitID} introuvable.");
                     
                     produit.RetirerStock(ligne.Quantite);
                 }
@@ -115,6 +115,12 @@ namespace TechShop.Controllers
         {
             var commande = await _context.Ventes.FindAsync(id);
             if (commande == null) return NotFound();
+
+            if (commande.Statut != VenteStatut.Validee)
+            {
+                TempData["Error"] = "Seule une commande validée peut être expédiée.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
 
             commande.Statut = VenteStatut.EnExpedition;
             await _context.SaveChangesAsync();
@@ -149,6 +155,12 @@ namespace TechShop.Controllers
             var commande = await _context.Ventes.FindAsync(id);
             if (commande == null) return NotFound();
 
+            if (commande.Statut != VenteStatut.EnExpedition)
+            {
+                TempData["Error"] = "Seule une commande en cours de livraison peut être marquée comme livrée.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
             commande.Statut = VenteStatut.Livree;
             await _context.SaveChangesAsync();
             TempData["Success"] = "La commande a été marquée comme livrée.";
@@ -156,7 +168,6 @@ namespace TechShop.Controllers
         }
         
         // Notification count for Admin Layout
-        [AllowAnonymous]
         public async Task<int> GetPendingCount()
         {
             return await _context.Ventes.CountAsync(v => v.Type == TypeVente.EnLigne && v.Statut == VenteStatut.EnAttente && v.IsActive);

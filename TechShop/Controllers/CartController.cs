@@ -32,10 +32,11 @@ namespace TechShop.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Add(int produitId, int quantite)
         {
             var produit = await _context.Produits.FindAsync(produitId);
-            if (produit == null || produit.Quantite < quantite)
+            if (produit == null || !produit.IsActive || quantite < 1 || produit.Quantite < quantite)
             {
                 TempData["Error"] = "Produit indisponible ou quantité insuffisante.";
                 return RedirectToAction("Details", "Store", new { id = produitId });
@@ -75,6 +76,7 @@ namespace TechShop.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Update(int produitId, int quantite)
         {
             var cart = GetCart();
@@ -94,6 +96,7 @@ namespace TechShop.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Remove(int produitId)
         {
             var cart = GetCart();
@@ -104,6 +107,7 @@ namespace TechShop.Controllers
 
         [Authorize]
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Checkout()
         {
             var cart = GetCart();
