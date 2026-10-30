@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.DependencyInjection;
 using TechShop.Data;
@@ -44,6 +45,7 @@ public sealed class Requete
         http.Features.Set<ISessionFeature>(new FonctionSession { Session = Session });
         controller.ControllerContext = new ControllerContext { HttpContext = http };
         controller.TempData = new TempDataDictionary(http, new TempDataEnMemoire());
+        controller.Url = new FauxUrlHelper(controller.ControllerContext);   // utilisé par RedirectToAction
         return controller;
     }
 
@@ -53,6 +55,17 @@ public sealed class Requete
         public IDictionary<string, object> LoadTempData(HttpContext context) => _data;
         public void SaveTempData(HttpContext context, IDictionary<string, object> values) => _data = values;
     }
+}
+
+/// <summary>Générateur d'URL minimal : les tests vérifient les redirections, pas les URL produites.</summary>
+public sealed class FauxUrlHelper(ActionContext context) : IUrlHelper
+{
+    public ActionContext ActionContext { get; } = context;
+    public string? Action(UrlActionContext actionContext) => $"/{actionContext.Controller}/{actionContext.Action}";
+    public string? Content(string? contentPath) => contentPath;
+    public bool IsLocalUrl(string? url) => !string.IsNullOrEmpty(url) && url.StartsWith('/');
+    public string? Link(string? routeName, object? values) => null;
+    public string? RouteUrl(UrlRouteContext routeContext) => null;
 }
 
 /// <summary>Enregistre les connexions / déconnexions au lieu d'écrire un cookie.</summary>
