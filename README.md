@@ -28,7 +28,7 @@ Application web **ASP.NET Core MVC (.NET 10)** pour un magasin de matériel info
 | Module | Fonctionnalités |
 | --- | --- |
 | **Catalogue** | Page d'accueil publique, recherche et filtres (marque, catégorie), fiche produit avec disponibilité |
-| **Panier** | Panier en session (ajout, modification des quantités, retrait), limité au stock disponible |
+| **Panier** | Panier en session (ajout, modification des quantités, retrait), limité au stock disponible, toujours au prix actuel (le client est prévenu si un prix change avant la commande) |
 | **Compte client** | Inscription, connexion, modification du profil et du mot de passe |
 | **Commandes** | Commande en ligne, suivi du statut (en attente, validée, en cours de livraison, livrée, annulée), livreur affecté, consultation de ses factures |
 
@@ -69,14 +69,14 @@ TechShop.Tests/         # tests xUnit (unitaires + intégration sur SQL Server)
 
 ## Tests
 
-**67 tests xUnit**, exécutés à chaque push par GitHub Actions :
+**74 tests xUnit**, exécutés à chaque push par GitHub Actions :
 
 - **unitaires** : règles de stock (`Produit`), calcul de facture (HT déduit du prix TTC au millime, TVA, timbre, aucun millime perdu) et format du numéro `F-AAAA-NNN` ;
 - **intégration sur un vrai SQL Server** lancé dans Docker par **Testcontainers** :
   - DAO ADO.NET (recherche, doublons insensibles à la casse, suppression logique et restauration, requêtes paramétrées) ;
   - ventes en magasin (décrément du stock, prix figé, refus du stock insuffisant) et factures (montants, numérotation, matricule fiscal obligatoire pour un client moral, une seule facture par vente, vente annulée non facturable) ;
-  - boutique en ligne : panier limité au stock, commande, validation avec livreur, étapes de livraison dans l'ordre, annulation, et cloisonnement (un client ne voit ni les commandes ni les factures d'un autre) ;
-  - comptes : inscription (rôle Client imposé, mot de passe haché), connexion, client bloqué ;
+  - boutique en ligne : panier limité au stock et toujours au prix actuel, commande, validation avec livreur, étapes de livraison dans l'ordre, annulation, et cloisonnement (un client ne voit ni les commandes ni les factures d'un autre) ;
+  - comptes : inscription (rôle Client imposé, mot de passe haché), connexion, client bloqué (déconnecté immédiatement même s'il était déjà connecté) ;
 - **sécurité** : le back-office est réservé au rôle Admin et toute action POST exige un jeton anti-CSRF.
 
 ```bash
