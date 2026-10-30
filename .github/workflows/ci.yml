@@ -25,3 +25,5 @@ jobs:
         run: |
           grep -hE 'error |Failed |Passed!|Failed!|Total tests|Réussi|Échec' build.log test.log 2>/dev/null | sed 's/%/pct/g; s/::/:/g' | head -40 | cut -c1-300 | tr '\n' '|' > resume.txt
           echo "::notice::$(cat resume.txt)"
+          grep -hA4 'Error Message:' test.log 2>/dev/null | grep -v '^--$' | sed 's/%/pct/g; s/::/:/g' | awk '!seen[$0]++' | head -30 | cut -c1-300 | tr '\n' '|' > erreurs.txt
+          if [ -s erreurs.txt ]; then echo "::notice::Erreurs : $(cat erreurs.txt)"; fi
